@@ -17,8 +17,6 @@ LOCAL_PATH:= $(call my-dir)
 # build audio.primary.mrvl.so
 include $(CLEAR_VARS)
 
-LOCAL_MODULE_TARGET_ARCH := arm
-
 LOCAL_SRC_FILES:= \
     audio_hw_mrvl.c \
     audio_path.c \
@@ -26,6 +24,7 @@ LOCAL_SRC_FILES:= \
     audio_effect_mrvl.c
 
 LOCAL_C_INCLUDES += \
+    external/expat/lib \
     external/icu/icu4c/source/common \
     external/tinyalsa/include/ \
     $(LOCAL_PATH)/include/acm \
@@ -47,6 +46,12 @@ LOCAL_MODULE:= audio.primary.mrvl
 LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS += -Wno-unused-parameter
+
+ifeq ($(BOARD_WITH_TELEPHONY_AUDIO),true)
+   LOCAL_CFLAGS += -DWITH_TELEPHONY
+   LOCAL_SHARED_LIBRARIES += libvcm
+   LOCAL_SRC_FILES += audio_vcm.c
+endif
 
 ifeq ($(strip $(BOARD_ENABLE_ADVANCED_AUDIO)),true)
    LOCAL_CFLAGS += -DWITH_ADVANCED_AUDIO
