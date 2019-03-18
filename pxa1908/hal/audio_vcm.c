@@ -194,3 +194,4 @@ int vcm_set_loopback(audio_devices_t device, bool arg2)
     }
     return res;
 }
+

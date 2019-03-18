@@ -40,6 +40,14 @@
 
 #include "audio_effect_mrvl.h"
 
+#ifdef WITH_TELEPHONY
+#include "audio_vcm.h"
+#endif
+
+#ifdef WITH_ACOUSTIC
+#include <acoustic.h>
+#endif
+
 // it should be accessed in protection of madev->lock
 static struct mrvl_path_status mrvl_path_manager;
 
