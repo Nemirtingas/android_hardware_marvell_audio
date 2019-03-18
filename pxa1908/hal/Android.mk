@@ -53,6 +53,10 @@ ifeq ($(BOARD_WITH_TELEPHONY_AUDIO),true)
    LOCAL_SRC_FILES += audio_vcm.c
 endif
 
+ifeq ($(strip $(BOARD_WITH_ACOUSTIC)),true)
+   LOCAL_CFLAGS += -DWITH_ACOUSTIC
+endif
+
 ifeq ($(strip $(BOARD_ENABLE_ADVANCED_AUDIO)),true)
    LOCAL_CFLAGS += -DWITH_ADVANCED_AUDIO
 endif
