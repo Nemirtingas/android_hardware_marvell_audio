@@ -3,99 +3,61 @@
 #define LOG_TAG "voice_control"
 #include <utils/Log.h>
 #include <stdint.h>
+#include <system/audio.h>
+
+#include "audio_hw_mrvl.h"
 
 #define true 1
 #define false 0
-typedef uint8_t bool;
 
 static bool vcmInitialised = false;
 static int32_t recording_stream = 0;
 
-int convert2_profile(int arg1, int arg2)
+int convert2_profile(audio_devices_t device, int vcm_param)
 {
-    int result;
+    switch( device )
+    {
+        case AUDIO_DEVICE_OUT_EARPIECE:
+        case AUDIO_DEVICE_IN_BUILTIN_MIC:
+        case AUDIO_DEVICE_IN_BACK_MIC:
+            if( vcm_param & VCM_DUAL_MIC  ) return 11;
+            if( vcm_param & VCM_EXTRA_VOL ) return 14;
+            return 1;
 
-  if ( arg1 == 0x40 )
-    goto LABEL_32;
-  if ( arg1 > 0x40 )
-  {
-    if ( arg1 != 0x80000004 )
-    {
-      if ( arg1 <= 0x80000004 )
-      {
-        if ( arg1 == 2048 || arg1 == 4096 )
-          return 2;
-        goto LABEL_48;
-      }
-      if ( arg1 == 0x80000010 )
-        goto LABEL_41;
-      if ( arg1 != 0x80000080 )
-      {
-        if ( arg1 != 0x80000008 )
-        {
-LABEL_48:
-          ALOGI("%s: Invalid input of audio device 0x%x", "convert2_profile", arg1);
-          return 0;
-        }
-        goto LABEL_32;
-      }
-    }
-LABEL_22:
-    if ( arg2 & 0x80 )
-      return 11;
-    if ( arg2 & 1 )
-      return 14;
-    return 1;
-  }
-  if ( arg1 == 4 )
-  {
-LABEL_41:
-    if ( arg2 & 8 )
-      return 18;
-    if ( arg2 & 0x10 )
-      return 19;
-    if ( arg2 & 0x20 )
-      return 20;
-    if ( arg2 & 0x40 )
-      return 21;
-    return 2;
-  }
-  if ( arg1 > 4 )
-  {
-    if ( arg1 != 16 && arg1 != 32 )
-    {
-      if ( arg1 != 8 )
-        goto LABEL_48;
-      return 7;
-    }
-LABEL_32:
-    if ( arg2 & 4 )
-    {
-      if ( arg2 & 2 )
-        result = 10;
-      else
-        result = 9;
-    }
-    else if ( arg2 & 2 )
-    {
-      result = 8;
-    }
-    else
-    {
-      result = 4;
-    }
-    return result;
-  }
-  if ( arg1 == 1 )
-    goto LABEL_22;
-  if ( arg1 != 2 )
-    goto LABEL_48;
-  if ( arg2 & 0x80 )
-    return 13;
-  if ( arg2 & 1 )
-    return 15;
+        case AUDIO_DEVICE_OUT_ANLG_DOCK_HEADSET:
+        case AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET:
+            return 2;
 
-  return 3;
+        case AUDIO_DEVICE_IN_WIRED_HEADSET:
+        case AUDIO_DEVICE_OUT_WIRED_HEADSET:
+            if( vcm_param & VCM_TTY_FULL        ) return 18;
+            if( vcm_param & VCM_TTY_HCO         ) return 19;
+            if( vcm_param & VCM_TTY_VCO         ) return 20;
+            if( vcm_param & VCM_TTY_VCO_DUALMIC ) return 21;
+            return 2;
+
+        case AUDIO_DEVICE_OUT_SPEAKER:
+            if( vcm_param & VCM_DUAL_MIC  ) return 13;
+            if( vcm_param & VCM_EXTRA_VOL ) return 15;
+            return 3;
+
+        case AUDIO_DEVICE_OUT_BLUETOOTH_SCO:
+        case AUDIO_DEVICE_OUT_BLUETOOTH_SCO_HEADSET:
+        case AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET:
+            if( vcm_param & VCM_BT_WB )
+            {
+               if( vcm_param & VCM_BT_NREC_OFF ) return 10;
+               return 9;
+            }
+            if( vcm_param & VCM_BT_NREC_OFF ) return 8;
+            return 4;
+
+        case AUDIO_DEVICE_OUT_WIRED_HEADPHONE:
+            return 7;
+
+    }
+    ALOGI("%s: Invalid input of audio device 0x%x", __func__, device);
+    return 0;
 }
 
 int vcm_check_init()
@@ -146,7 +108,7 @@ void vcm_set_user_eq(void* parameter, size_t parameter_size)
     }
 }
 
-void vcm_select_path(int32_t device, int a2, int params)
+void vcm_select_path(audio_devices_t device, int a2, int params)
 {
     ALOGI("%s: device 0x%x", __func__, device);
     if( !vcm_check_init() )
@@ -220,14 +182,14 @@ int vcm_recording_start()
     return 0;
 }
 
-int vcm_set_loopback(int arg1, bool arg2)
+int vcm_set_loopback(audio_devices_t device, bool arg2)
 {
     int res;
     
     res = vcm_check_init();
     if( !res )
     {
-        int profile = convert2_profile(arg1, 0);
+        int profile = convert2_profile(device, 0);
         res = VCMAudioProfileSet(0, profile, (arg2?2:1));
     }
     return res;
