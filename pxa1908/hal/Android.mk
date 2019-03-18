@@ -27,7 +27,6 @@ LOCAL_C_INCLUDES += \
     external/expat/lib \
     external/icu/icu4c/source/common \
     external/tinyalsa/include/ \
-    $(LOCAL_PATH)/include/acm \
     system/media/audio/include \
     system/media/audio_utils/include/audio_utils \
     system/media/audio_effects/include/audio_effects \
@@ -55,6 +54,7 @@ endif
 
 ifeq ($(strip $(BOARD_WITH_ACOUSTIC)),true)
    LOCAL_CFLAGS += -DWITH_ACOUSTIC
+   LOCAL_SHARED_LIBRARIES += libacoustic
 endif
 
 ifeq ($(strip $(BOARD_ENABLE_ADVANCED_AUDIO)),true)
