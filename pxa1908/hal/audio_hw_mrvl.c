@@ -441,6 +441,7 @@ unsigned int convert2_hwdev(struct mrvl_audio_device *madev,
 
       // in case of Headphone (3-pole headset), change the input (mic) hw device
       if (madev->out_device == AUDIO_DEVICE_OUT_WIRED_HEADPHONE) {
+        /*
         switch (hardware_dev) {
           case HWDEV_AMIC1:
           case HWDEV_AMIC1_SPK_MODE:
@@ -457,6 +458,7 @@ unsigned int convert2_hwdev(struct mrvl_audio_device *madev,
           default:
             break;
         }
+        */
       }
       break;
     }
