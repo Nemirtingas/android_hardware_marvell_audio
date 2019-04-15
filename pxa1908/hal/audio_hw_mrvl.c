@@ -768,6 +768,8 @@ void set_voice_call_volume(struct mrvl_audio_device *madev, float volume,
   vcm_setvolume(input_gain, input_gain_wb, output_gain, output_gain_wb,
                 vc_output_vol);
 #endif
+
+  set_hw_volume(V_MODE_VC, convert2_hwdev(madev, madev->out_device), vc_output_vol);
 }
 
 unsigned int get_loopback_headset_flag(struct mrvl_audio_device *madev) {

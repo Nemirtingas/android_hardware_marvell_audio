@@ -1,3 +1,6 @@
 LOCAL_PATH	:= $(call my-dir)
 
-include $(call all-named-subdir-makefiles,hal)
+audio-hals += hal
+audio-hals += libvcm libacm libacoustic
+
+include $(call all-named-subdir-makefiles,$(audio-hals))
