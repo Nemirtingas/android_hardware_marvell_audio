@@ -1600,7 +1600,8 @@ static size_t out_get_buffer_size_low_latency(
   // be a multiple of 16 frames.
   int buffer_size = ((out->period_size + 15) / 16) * 16;
   ALOGD("%s buffer_size %d", __FUNCTION__, buffer_size);
-  return buffer_size * audio_stream_frame_size((struct audio_stream *)stream);
+  //return buffer_size * audio_stream_frame_size((struct audio_stream *)stream);
+  return buffer_size * audio_stream_out_frame_size((struct audio_stream *)stream);
 }
 
 static size_t out_get_buffer_size_deep_buffer(
@@ -1612,7 +1613,8 @@ static size_t out_get_buffer_size_deep_buffer(
   // be a multiple of 16 frames.
   int buffer_size = ((DEEP_BUFFER_SHORT_PERIOD_SIZE + 15) / 16) * 16;
   ALOGD("%s buffer_size %d", __FUNCTION__, buffer_size);
-  return buffer_size * audio_stream_frame_size((struct audio_stream *)stream);
+  //return buffer_size * audio_stream_frame_size((struct audio_stream *)stream);
+  return buffer_size * audio_stream_out_frame_size((struct audio_stream *)stream);
 }
 
 static audio_channel_mask_t out_get_channels(
@@ -1795,7 +1797,8 @@ static ssize_t out_write_low_latency(struct audio_stream_out *stream,
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   struct mrvl_audio_device *madev = out->dev;
   bool force_input_standby = false;
-  size_t out_frames = bytes / audio_stream_frame_size(&out->stream.common);
+  //size_t out_frames = bytes / audio_stream_frame_size(&out->stream.common);
+  size_t out_frames = bytes / audio_stream_out_frame_size(&out->stream.common);
 
 #ifdef AUDIO_DEBUG
   audio_debug_stream_dump(AH_RX_LL, buffer, bytes);
@@ -1868,7 +1871,8 @@ exit:
 
   // delay when error happened except enter underrun
   if ((ret < 0) && (ret != -EPIPE)) {
-    usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
+    //usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
+    usleep(bytes * 1000000 / audio_stream_out_frame_size(&stream->common) /
            out_get_sample_rate(&stream->common));
   }
   return bytes;
@@ -1879,7 +1883,8 @@ static ssize_t out_write_deep_buffer(struct audio_stream_out *stream,
   int ret = -1;
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   struct mrvl_audio_device *madev = out->dev;
-  size_t out_frames = bytes / audio_stream_frame_size(&out->stream.common);
+  size_t out_frames = bytes / audio_stream_out_frame_size(&out->stream.common);
+  //size_t out_frames = bytes / audio_stream_frame_size(&out->stream.common);
   bool use_long_periods = true;
   int avail_frames = 0;
   int kernel_frames = 0;
@@ -1964,7 +1969,8 @@ exit:
   pthread_mutex_unlock(&out->lock);
 
   if (ret < 0) {
-    usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
+    //usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
+    usleep(bytes * 1000000 / audio_stream_out_frame_size(&stream->common) /
            out_get_sample_rate(&stream->common));
   }
   return bytes;
@@ -2028,7 +2034,8 @@ static size_t in_get_buffer_size(const struct audio_stream *stream) {
   // be a multiple of 16 frames.
   int buffer_size = ((in->period_size + 15) / 16) * 16;
   ALOGD("%s buffer_size %d", __FUNCTION__, buffer_size);
-  return buffer_size * audio_stream_frame_size((struct audio_stream *)stream);
+  return buffer_size * audio_stream_in_frame_size((struct audio_stream *)stream);
+  //return buffer_size * audio_stream_frame_size((struct audio_stream *)stream);
 }
 
 static uint32_t in_get_channels(const struct audio_stream *stream) {
@@ -2211,7 +2218,8 @@ exit:
   pthread_mutex_unlock(&in->lock);
   if (ret < 0) {
     memset((unsigned char *)buffer, 0, bytes);
-    usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
+    usleep(bytes * 1000000 / audio_stream_in_frame_size(&stream->common) /
+    //usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
            in_get_sample_rate(&stream->common));
   }
   return bytes;
@@ -2278,7 +2286,8 @@ static ssize_t in_read_primary(struct audio_stream_in *stream, void *buffer,
   if ((!is_in_voip_vt(madev->mode)) &&
       (in->source != AUDIO_SOURCE_VOICE_RECOGNITION)) {
     int16_t *p = (int16_t *)buffer;
-    size_t in_frames = bytes / audio_stream_frame_size(&in->stream.common);
+    size_t in_frames = bytes / audio_stream_in_frame_size(&in->stream.common);
+    //size_t in_frames = bytes / audio_stream_frame_size(&in->stream.common);
     acoustic_manager_process(in->acoustic_manager, p, in_frames);
   }
 #endif
@@ -2297,7 +2306,8 @@ exit:
   pthread_mutex_unlock(&in->lock);
   if ((ret < 0) && (ret != -EPIPE)) {
     memset((unsigned char *)buffer, 0, bytes);
-    usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
+    usleep(bytes * 1000000 / audio_stream_in_frame_size(&stream->common) /
+    //usleep(bytes * 1000000 / audio_stream_frame_size(&stream->common) /
            in_get_sample_rate(&stream->common));
   }
 
@@ -3188,7 +3198,6 @@ static uint32_t mrvl_hw_dev_get_supported_devices(
       AUDIO_DEVICE_IN_AUX_DIGITAL | AUDIO_DEVICE_IN_VOICE_CALL |
       AUDIO_DEVICE_IN_BACK_MIC | AUDIO_DEVICE_IN_VT_MIC |
       AUDIO_DEVICE_IN_FMRADIO | AUDIO_DEVICE_IN_ALL_SCO |
-      AUDIO_DEVICE_IN_MRVL1 | AUDIO_DEVICE_IN_MRVL2 |
       AUDIO_DEVICE_IN_DEFAULT);
 }
 
