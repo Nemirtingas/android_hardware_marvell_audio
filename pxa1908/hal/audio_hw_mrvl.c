@@ -873,7 +873,8 @@ static void select_input_device(struct mrvl_audio_device *madev) {
 
 static struct pcm *open_tiny_alsa_device(unsigned int device,
                                          unsigned int direction,
-                                         struct pcm_config *config) {
+                                         struct pcm_config *config)
+{
   ALOGI(
       "%s: device %u, direction %u, channels %u, sample_rate %u, period_size "
       "%u",
@@ -900,24 +901,22 @@ static struct pcm *open_tiny_alsa_device(unsigned int device,
   return pcm;
 }
 
-static void select_output_device(struct mrvl_audio_device *madev) {
+static void select_output_device(struct mrvl_audio_device *madev)
+{
   ALOGI("%s switch device from old device 0x%x to new device 0x%x ",
         __FUNCTION__, mrvl_path_manager.active_out_device, madev->out_device);
 
   bool cp_mute = false;
-  // check active output interface to make sure device is configured later than
-  // interface
-  if (!has_active_out_itf()) {
-    ALOGI("%s no active output interface, return.", __FUNCTION__);
-    return;
-  }
 
+  /*
   if (madev->in_fm && popcount(madev->out_device) == 2) {
     ALOGI("%s Mute FM when playing force speaker stream", __FUNCTION__);
     set_hw_volume(V_MODE_FM, convert2_hwdev(madev, madev->fm_device), 0);
   }
+  */
 
-  if (madev->mode == AUDIO_MODE_IN_CALL) {
+  if (madev->mode == AUDIO_MODE_IN_CALL)
+  {
     // select input devices and route input device
     madev->in_device = get_input_dev(madev->out_device);
 // Mute CP before switch Tx path.
@@ -2718,7 +2717,8 @@ static char *mrvl_hw_dev_get_parameters(const struct audio_hw_device *dev,
   return ret_val;
 }
 
-static int mrvl_hw_dev_init_check(const struct audio_hw_device *dev) {
+static int mrvl_hw_dev_init_check(const struct audio_hw_device *dev)
+{
   ALOGI("%s", __FUNCTION__);
   return 0;
 }
@@ -2730,9 +2730,6 @@ static int mrvl_hw_dev_set_voice_volume(struct audio_hw_device *dev,
   madev->voice_volume = volume;
   if (madev->mode == AUDIO_MODE_IN_CALL) {
     set_voice_call_volume(madev, volume, madev->use_extra_vol);
-    // set volume value to ACM for volume calibration for voice call.
-    set_hw_volume(V_MODE_VC, convert2_hwdev(madev, madev->out_device),
-                  (unsigned char)(volume * 100));
   }
   return 0;
 }
@@ -3166,7 +3163,8 @@ static int mrvl_hw_dev_close(hw_device_t *device) {
 }
 
 static uint32_t mrvl_hw_dev_get_supported_devices(
-    const struct audio_hw_device *dev) {
+    const struct audio_hw_device *dev)
+{
   return (  // OUT
       AUDIO_DEVICE_OUT_EARPIECE | AUDIO_DEVICE_OUT_SPEAKER |
       AUDIO_DEVICE_OUT_WIRED_HEADSET | AUDIO_DEVICE_OUT_WIRED_HEADPHONE |
@@ -3178,6 +3176,7 @@ static uint32_t mrvl_hw_dev_get_supported_devices(
       AUDIO_DEVICE_IN_AUX_DIGITAL | AUDIO_DEVICE_IN_VOICE_CALL |
       AUDIO_DEVICE_IN_BACK_MIC | AUDIO_DEVICE_IN_VT_MIC |
       AUDIO_DEVICE_IN_FMRADIO | AUDIO_DEVICE_IN_ALL_SCO |
+      AUDIO_DEVICE_IN_MRVL1 | AUDIO_DEVICE_IN_MRVL2 |
       AUDIO_DEVICE_IN_DEFAULT);
 }
 

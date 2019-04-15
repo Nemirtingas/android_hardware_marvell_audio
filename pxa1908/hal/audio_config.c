@@ -219,6 +219,135 @@ static unsigned int get_hwdev_byname(char *dev_name)
   return HWDEV_INVALID;
 }
 
+static void parse_board_devlist(xmlNodePtr node, struct platform_config_t *config)
+{
+  struct board_dev_cfg_t *dev_cfg;
+  xmlChar* connectivity, coupling, content;
+
+  for( ; node; node = node->next )
+  {
+    if( !xmlStrcmp(node->name, "Device") )
+    {
+      dev_cfg = (struct board_dev_cfg_t*)calloc(1, sizeof(struct board_dev_cfg_t));
+      if( !dev_cfg )
+      {
+        ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
+        break;
+      }
+      memset(dev_cfg, 0, sizeof(struct board_dev_cfg_t));
+      content = xmlNodeGetContent(node);
+      if( content )
+      {
+        connectivity = xmlGetProp(node, "connectivity");
+        coupling = xmlGetProp(node, "coupling");
+        ALOGI("%s: find board config device %s", __FUNCTION__, content);
+        dev_cfg->hw_dev = get_hwdev_byname(content);
+        xmlFree(content);
+        if( connectivity )
+        {
+          ALOGI("%s: connectivity = \"%s\"", __FUNCTION__, connectivity);
+          if( !strcmp(connectivity, "diff") )
+          {
+            dev_cfg->connectivity = 0x20000;
+          }
+          else if( !strcmp(connectivity, "quasi_diff") )
+          {
+            dev_cfg->connectivity = 0x40000;
+          }
+          else if( !strcmp(connectivity, "single_ended") )
+          {
+            dev_cfg->connectivity = 0x80000;
+          }
+          else
+          {
+            dev_cfg->connectivity = 0;
+          }
+          xmlFree(connectivity);
+        }
+        if( coupling )
+        {
+          ALOGI("%s: coupling = \"%s\"", __FUNCTION__, coupling);
+          if( !strcmp(coupling, "ac") )
+          {
+            dev_cfg->coupling = 0x100000;
+          }
+          else if( !strcmp(coupling, "dv") )
+          {
+            dev_cfg->coupling = 0x200000;
+          }
+          else 
+          {
+            dev_cfg->coupling = 0;
+          }
+          xmlFree(coupling);
+        }
+      }
+      if( config->board_dev_cfg )
+      {
+        struct board_dev_cfg_t *tmp_cfg = config->board_dev_cfg;
+        while( tmp_cfg->next )
+          tmp_cfg = tmp_cfg->next;
+        tmp_cfg->next = dev_cfg;
+      }
+      else
+      {
+        config->board_dev_cfg = dev_cfg;
+      }
+    }
+  }
+}
+
+static int parse_app_config(xmlNodePtr node, struct android_dev_cfg_t *config)
+{
+  struct app_cfg_t *app_cfg;
+  xmlNodePtr app_node;
+  xmlChar *xml_prop;
+  xmlChar *value;
+
+  app_cfg = (struct app_cfg_t*)calloc(1, sizeof(struct app_cfg_t));
+  if( !app_cfg )
+  {
+    ALOGE("%s: find app config, identifier %s", __FUNCTION__, xml_prop);
+    return -1;
+  }
+
+  xml_prop = xmlGetProp(node, "identifier");
+  if( xml_prop )
+  {
+    ALOGI("%s: find app config, identifier %s", __FUNCTION__, xml_prop);
+    app_cfg->v_mode = get_mode_byname(xml_prop);
+    xmlFree(xml_prop);
+  }
+
+  for( app_node = node->children; app_node; app_node = app_node->next )
+  {
+    if( !xmlStrcmp(app_node->name, "Device") )
+    {
+      value = xmlNodeGetContent(app_node);
+      if( value )
+      {
+        ALOGI("%s: find device %s", __FUNCTION__, value);
+        app_cfg->device |= get_hwdev_byname(value);
+        xmlFree(value);
+      }
+    }
+  }
+
+  if( config->app_cfg )
+  {
+    struct app_cfg_t* tmp_cfg = config->app_cfg;
+    while( tmp_cfg->next )
+        tmp_cfg = tmp_cfg->next;
+    tmp_cfg->next = app_cfg;
+  }
+  else
+  {
+    config->app_cfg = app_cfg;
+  }
+
+  return 0;
+}
+
 int init_platform_config()
 {
   const char *config_file = AUDIO_PLATFORM_CONFIG_FILE;
