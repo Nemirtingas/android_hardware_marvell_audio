@@ -109,7 +109,6 @@ static struct pcm_config pcm_config_input = {
 // priority(VC>VOIP/VT>FM>DeepBuffer>LowLatency)
 static struct vtrl_mode_priority_cfg priority_modes_output[] = {
     {ID_IPATH_RX_VC, AUDIO_MODE_IN_CALL, V_MODE_VC},
-    {ID_IPATH_RX_VC, AUDIO_MODE_NORMAL, V_MODE_VC},
     {ID_IPATH_RX_VC_ST, AUDIO_MODE_NORMAL, V_MODE_VC},
     {ID_IPATH_RX_HIFI_LL, AUDIO_MODE_IN_COMMUNICATION, V_MODE_VOIP},
     {ID_IPATH_RX_HIFI_LL, AUDIO_MODE_IN_VT_CALL, V_MODE_VT},
@@ -238,32 +237,24 @@ void get_out_vrtl_mode(struct mrvl_audio_device *madev,
 }
 
 // get current active virtual mode for TX direction
-void get_in_vrtl_mode(struct mrvl_audio_device *madev, virtual_mode_t *v_mode) {
+void get_in_vrtl_mode(struct mrvl_audio_device *madev, virtual_mode_t *v_mode)
+{
   int i = 0;
   // the priorities of modes are sorted by descending order in array
   // priority_modes[]
-  for (i = 0; i < (int)NUM_VTRL_MODES_INPUT; i++) {
-    if (mrvl_path_manager.itf_state[priority_modes_input[i].path_interface]) {
+  for (i = 0; i < (int)NUM_VTRL_MODES_INPUT; i++)
+  {
+    if (mrvl_path_manager.itf_state[priority_modes_input[i].path_interface])
+    {
       if ((priority_modes_input[i].path_interface == ID_IPATH_TX_HIFI) &&
-          (priority_modes_input[i].audio_mode != madev->mode)) {
+          (priority_modes_input[i].audio_mode != madev->mode))
+      {
         continue;
       }
       *v_mode = priority_modes_input[i].v_mode;
       break;
     }
   }
-
-  /*
-  if (madev->loopback_param.on) {
-    if (madev->loopback_param.type == CP_LOOPBACK) {
-      *v_mode = V_MODE_CP_LOOPBACK;
-    } else if (madev->loopback_param.type == HARDWARE_LOOPBACK) {
-      *v_mode = V_MODE_HW_LOOPBACK;
-    } else if (madev->loopback_param.type == APP_LOOPBACK) {
-      *v_mode = V_MODE_APP_LOOPBACK;
-    }
-  }
-  */
 }
 
 // this function returns the hw device, takes into account the tty mode.
@@ -484,7 +475,8 @@ unsigned int convert2_hwdev(struct mrvl_audio_device *madev,
 }
 
 int add_vrtl_path(struct listnode *path_node, struct virtual_mode *vtrl_mode,
-                  unsigned device) {
+                  unsigned device)
+{
   struct virtual_path *v_path = calloc(1, sizeof(struct virtual_path));
   if (v_path == NULL) {
     return -1;
@@ -2325,7 +2317,8 @@ static int mrvl_hw_dev_open_output_stream(
     struct audio_hw_device *dev, audio_io_handle_t handle,
     audio_devices_t devices, audio_output_flags_t flags,
     struct audio_config *config, struct audio_stream_out **stream_out,
-    const char *address) {
+    const char *address)
+{
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   struct mrvl_stream_out *out = NULL;
   int ret = 0;
@@ -2341,9 +2334,11 @@ static int mrvl_hw_dev_open_output_stream(
   out->sample_rate = SAMPLE_RATE_OUT_DEFAULT;
   out->format = AUDIO_FORMAT_PCM_16_BIT;
 
-  if (flags & AUDIO_OUTPUT_FLAG_DEEP_BUFFER) {
+  if (flags & AUDIO_OUTPUT_FLAG_DEEP_BUFFER)
+  {
     ALOGV("%s deep buffer", __FUNCTION__);
-    if (madev->outputs[OUTPUT_DEEP_BUF] != NULL) {
+    if (madev->outputs[OUTPUT_DEEP_BUF] != NULL)
+    {
       ret = -ENOSYS;
       goto err_open;
     }
@@ -2402,12 +2397,14 @@ static int mrvl_hw_dev_open_output_stream(
     madev->out_device = AUDIO_DEVICE_OUT_WIRED_HEADSET;
   else
     madev->out_device = devices;
-#else
-  madev->out_device = devices;
 #endif
   pthread_mutex_unlock(&madev->lock);
 
   list_init(&out->effect_interfaces);
+
+#ifdef WITH_SAMSUNG_AUDIO_PROCESSING
+  PostProcessInit(output_type, config->sample_rate, config->format, config->format >> 32);
+#endif
 
 #ifdef WITH_ACOUSTIC
   out->acoustic_manager = 0;
@@ -2428,6 +2425,11 @@ static void mrvl_hw_dev_close_output_stream(struct audio_hw_device *dev,
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
 
   ALOGI("%s: out %p", __FUNCTION__, out);
+
+#ifdef WITH_SAMSUNG_AUDIO_PROCESSING
+  PostProcessClear(1);
+  PostProcessClear(0);
+#endif
 
   // standby current outputs
   pthread_mutex_lock(&madev->lock);
@@ -2699,21 +2701,30 @@ static char *mrvl_hw_dev_get_parameters(const struct audio_hw_device *dev,
   char val_str[32];
   struct str_parms *param;
   const char *key;
-  ALOGI("%s keys %s", __FUNCTION__, keys);
 
+  // struct str_parms params;
+  // params = str_parms_create();
+  ALOGI("%s keys %s", __FUNCTION__, keys);
   param = str_parms_create_str(keys);
-  if (!param) return ret_val;
+  if (!param)
+  {
+    // str_parms_destroy(params);
+    return ret_val;
+  }
   pthread_mutex_lock(&madev->lock);
 
   key = EXTRA_VOL;
-  if (str_parms_get_str(param, key, val_str, sizeof(val_str)) >= 0) {
-    if (snprintf(val_str, sizeof(val_str), "%s",
-                 madev->use_extra_vol ? "true" : "false") >= 0) {
+  if (str_parms_get_str(param, key, val_str, sizeof(val_str)) >= 0)
+  {
+    if (snprintf(val_str, sizeof(val_str), "%s", 
+          madev->use_extra_vol ? "true" : "false") >= 0)
+    {
       ret_val = strdup(val_str);
     }
   }
   pthread_mutex_unlock(&madev->lock);
   str_parms_destroy(param);
+  // str_parms_destroy(params);
   return ret_val;
 }
 
@@ -2781,7 +2792,8 @@ static int mrvl_hw_dev_get_mic_mute(const struct audio_hw_device *dev,
 }
 
 static size_t mrvl_hw_dev_get_input_buffer_size(
-    const struct audio_hw_device *dev, const struct audio_config *config) {
+    const struct audio_hw_device *dev, const struct audio_config *config)
+{
   int buffersize = 0;
   if (config->format != AUDIO_FORMAT_PCM_16_BIT) {
     ALOGW("%s: bad format: %d", __FUNCTION__, config->format);
