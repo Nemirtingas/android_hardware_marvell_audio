@@ -253,6 +253,7 @@ void get_in_vrtl_mode(struct mrvl_audio_device *madev, virtual_mode_t *v_mode) {
     }
   }
 
+  /*
   if (madev->loopback_param.on) {
     if (madev->loopback_param.type == CP_LOOPBACK) {
       *v_mode = V_MODE_CP_LOOPBACK;
@@ -262,6 +263,7 @@ void get_in_vrtl_mode(struct mrvl_audio_device *madev, virtual_mode_t *v_mode) {
       *v_mode = V_MODE_APP_LOOPBACK;
     }
   }
+  */
 }
 
 // this function returns the hw device, takes into account the tty mode.

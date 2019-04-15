@@ -23,7 +23,7 @@
 #include <system/audio.h>
 #include <cutils/log.h>
 #include <expat.h>
-#include <libxml/>
+#include <libxml/tree.h>
 
 #include "acm_api.h"
 #include "audio_path.h"
@@ -232,7 +232,7 @@ int init_platform_config()
   if( !xml_doc )
   {
     ALOGE("%s: failed to parse xml file %s: %s", __FUNCTION__, config_file, strerror(errno));
-    return -1
+    return -1;
   }
   
   root_elem = xmlDocGetRootElement(xml_doc);
@@ -250,7 +250,7 @@ int init_platform_config()
     return -1;
   }
 
-  mrvl_platform_cfg = (platform_config_t*)calloc(1, sizeof(platform_config_t));
+  mrvl_platform_cfg = (struct platform_config_t*)calloc(1, sizeof(struct platform_config_t));
   if( !mrvl_platform_cfg )
   {
     ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
@@ -268,7 +268,7 @@ int init_platform_config()
     {
       xmlNodePtr app_node;
       xmlChar xml_prop;
-      android_dev_cfg_t *droid_dev_cfg = (android_dev_cfg_t*)calloc(1, sizeof(android_dev_cfg_t));
+      struct android_dev_cfg_t *droid_dev_cfg = (struct android_dev_cfg_t*)calloc(1, sizeof(struct android_dev_cfg_t));
 
       if( !droid_dev_cfg )
       {
@@ -295,7 +295,7 @@ int init_platform_config()
       } 
       if( mrvl_platform_cfg->droid_dev_cfg )
       {
-        android_dev_cfg_t *tmp_dev_cfg = mrvl_platform_cfg->droid_dev_cfg;
+        struct android_dev_cfg_t *tmp_dev_cfg = mrvl_platform_cfg->droid_dev_cfg;
         while( tmp_dev_cfg->next )
           tmp_dev_cfg = tmp_dev_cfg->next;
         tmp_dev_cfg->next = droid_dev_cfg;

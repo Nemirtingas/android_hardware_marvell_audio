@@ -197,13 +197,9 @@ static const struct {
     {V_MODE_VC, HWDEV_AMIC1, 0, PATH_NAME(VoiceRecordFromAMic1)},
     {V_MODE_VC, HWDEV_AMIC1_SPK_MODE, 0,
      PATH_NAME(VoiceRecordFromAMic1(Speaker Mode))},
-    {V_MODE_VC, HWDEV_AMIC1_HP_MODE, 0,
-     PATH_NAME(VoiceRecordFromAMic1(Headphone Mode))},
     {V_MODE_VC, HWDEV_AMIC2, 0, PATH_NAME(VoiceRecordFromAMic2)},
     {V_MODE_VC, HWDEV_AMIC2_SPK_MODE, 0,
      PATH_NAME(VoiceRecordFromAMic2(Speaker Mode))},
-    {V_MODE_VC, HWDEV_AMIC2_HP_MODE, 0,
-     PATH_NAME(VoiceRecordFromAMic2(Headphone Mode))},
     {V_MODE_VC, HWDEV_DMIC1, 0, PATH_NAME(VoiceRecordFromDMic1)},
     {V_MODE_VC, HWDEV_DMIC2, 0, PATH_NAME(VoiceRecordFromDMic2)},
     {V_MODE_VC, HWDEV_HSMIC, 0, PATH_NAME(VoiceRecordFromHsMic)},
@@ -212,8 +208,6 @@ static const struct {
     {V_MODE_VC, HWDEV_DUAL_AMIC, 0, PATH_NAME(VoiceRecordFromDualAMic)},
     {V_MODE_VC, HWDEV_DUAL_AMIC_SPK_MODE, 0,
      PATH_NAME(VoiceRecordFromDualAMic(Speaker Mode))},
-    {V_MODE_VC, HWDEV_DUAL_AMIC_HP_MODE, 0,
-     PATH_NAME(VoiceRecordFromDualAMic(Headphone Mode))},
     {V_MODE_VC, HWDEV_IN_TTY, 0, PATH_NAME(VoiceRecordFromTty)},
     {V_MODE_VC, HWDEV_IN_TTY_VCO_AMIC1, 0,
      PATH_NAME(VoiceRecordFromTtyVcoAMic1)},
@@ -247,13 +241,9 @@ static const struct {
     {V_MODE_VOIP, HWDEV_AMIC1, 0, PATH_NAME(VoipRecordFromAMic1)},
     {V_MODE_VOIP, HWDEV_AMIC1_SPK_MODE, 0,
      PATH_NAME(VoipRecordFromAMic1(Speaker Mode))},
-    {V_MODE_VOIP, HWDEV_AMIC1_HP_MODE, 0,
-     PATH_NAME(VoipRecordFromAMic1(Headhone Mode))},
     {V_MODE_VOIP, HWDEV_AMIC2, 0, PATH_NAME(VoipRecordFromAMic2)},
     {V_MODE_VOIP, HWDEV_AMIC2_SPK_MODE, 0,
      PATH_NAME(VoipRecordFromAMic2(Speaker Mode))},
-    {V_MODE_VOIP, HWDEV_AMIC2_HP_MODE, 0,
-     PATH_NAME(VoipRecordFromAMic2(Headphone Mode))},
     {V_MODE_VOIP, HWDEV_DMIC1, 0, PATH_NAME(VoipRecordFromDMic1)},
     {V_MODE_VOIP, HWDEV_DMIC2, 0, PATH_NAME(VoipRecordFromDMic2)},
     {V_MODE_VOIP, HWDEV_HSMIC, 0, PATH_NAME(VoipRecordFromHsMic)},
@@ -262,8 +252,6 @@ static const struct {
     {V_MODE_VOIP, HWDEV_DUAL_AMIC, 0, PATH_NAME(VoipRecordFromDualAMic)},
     {V_MODE_VOIP, HWDEV_DUAL_AMIC_SPK_MODE, 0,
      PATH_NAME(VoipRecordFromDualAMic(Speaker Mode))},
-    {V_MODE_VOIP, HWDEV_DUAL_AMIC_HP_MODE, 0,
-     PATH_NAME(VoipRecordFromDualAMic(Headphone Mode))},
     {V_MODE_VOIP, HWDEV_BTMIC_NREC_OFF_NB, 0,
      PATH_NAME(VoipRecordFromBTMicNB(NREC Mode))},
     {V_MODE_VOIP, HWDEV_BTMIC_NREC_OFF_WB, 0,
@@ -285,13 +273,9 @@ static const struct {
     {V_MODE_VT, HWDEV_AMIC1, 0, PATH_NAME(VTRecordFromAMic1)},
     {V_MODE_VT, HWDEV_AMIC1_SPK_MODE, 0,
      PATH_NAME(VTRecordFromAMic1(Speaker Mode))},
-    {V_MODE_VT, HWDEV_AMIC1_HP_MODE, 0,
-     PATH_NAME(VTRecordFromAMic1(Headphone Mode))},
     {V_MODE_VT, HWDEV_AMIC2, 0, PATH_NAME(VTRecordFromAMic2)},
     {V_MODE_VT, HWDEV_AMIC2_SPK_MODE, 0,
      PATH_NAME(VTRecordFromAMic2(Speaker Mode))},
-    {V_MODE_VT, HWDEV_AMIC2_HP_MODE, 0,
-     PATH_NAME(VTRecordFromAMic2(Headphone Mode))},
     {V_MODE_VT, HWDEV_DMIC1, 0, PATH_NAME(VTRecordFromDMic1)},
     {V_MODE_VT, HWDEV_DMIC2, 0, PATH_NAME(VTRecordFromDMic2)},
     {V_MODE_VT, HWDEV_HSMIC, 0, PATH_NAME(VTRecordFromHsMic)},
@@ -300,8 +284,6 @@ static const struct {
     {V_MODE_VT, HWDEV_DUAL_AMIC, 0, PATH_NAME(VTRecordFromDualAMic)},
     {V_MODE_VT, HWDEV_DUAL_AMIC_SPK_MODE, 0,
      PATH_NAME(VTRecordFromDualAMic(Speaker Mode))},
-    {V_MODE_VT, HWDEV_DUAL_AMIC_HP_MODE, 0,
-     PATH_NAME(VTRecordFromDualAMic(Headphone Mode))},
     {V_MODE_VT, HWDEV_BTMIC_NREC_OFF_NB, 0,
      PATH_NAME(VTRecordFromBTMicNB(NREC Mode))},
     {V_MODE_VT, HWDEV_BTMIC_NREC_OFF_WB, 0,
@@ -320,24 +302,6 @@ static const struct {
 
     // FM Record
     {V_MODE_FM, HWDEV_INVALID, 0, PATH_NAME(FMI2SRecordFromFM)},
-
-    // CP Loopback
-    {V_MODE_CP_LOOPBACK, HWDEV_AMIC1, 0, PATH_NAME(VoiceRecordFromAMic1)},
-    {V_MODE_CP_LOOPBACK, HWDEV_AMIC2, 0, PATH_NAME(VoiceRecordFromAMic2)},
-    {V_MODE_CP_LOOPBACK, HWDEV_DMIC1, 0, PATH_NAME(VoiceRecordFromDMic1)},
-    {V_MODE_CP_LOOPBACK, HWDEV_HSMIC, 0, PATH_NAME(VoiceRecordFromHsMic)},
-
-    // HW Loopback
-    {V_MODE_HW_LOOPBACK, HWDEV_AMIC1, 0, PATH_NAME(VoiceRecordFromAMic1)},
-    {V_MODE_HW_LOOPBACK, HWDEV_AMIC2, 0, PATH_NAME(VoiceRecordFromAMic2)},
-    {V_MODE_HW_LOOPBACK, HWDEV_DMIC1, 0, PATH_NAME(VoiceRecordFromDMic1)},
-    {V_MODE_HW_LOOPBACK, HWDEV_HSMIC, 0, PATH_NAME(VoiceRecordFromHsMic)},
-
-    // APP Loopback
-    {V_MODE_APP_LOOPBACK, HWDEV_AMIC1, 0, PATH_NAME(VoipRecordFromAMic1)},
-    {V_MODE_APP_LOOPBACK, HWDEV_AMIC2, 0, PATH_NAME(VoipRecordFromAMic2)},
-    {V_MODE_APP_LOOPBACK, HWDEV_DMIC1, 0, PATH_NAME(VoipRecordFromDMic1)},
-    {V_MODE_APP_LOOPBACK, HWDEV_HSMIC, 0, PATH_NAME(VoipRecordFromHsMic)},
 };
 
 static void handle_ctl_info(char *path_name, int method, int val)
@@ -401,7 +365,7 @@ char *get_vrtl_path(virtual_mode_t v_mode, unsigned int hw_dev,
 
 // parameter "flag" is used to search virtual path in audio HAL
 void route_vrtl_path(virtual_mode_t v_mode, int hw_dev, int enable,
-                     unsigned int flag, int value)
+                     unsigned int flag, unsigned int value)
 {
   char *path = NULL;
   ALOGI("%s mode %d hw_dev 0x%x %s", __FUNCTION__, v_mode, hw_dev,
