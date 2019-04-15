@@ -23,6 +23,7 @@
 #include <system/audio.h>
 #include <cutils/log.h>
 #include <expat.h>
+#include <libxml/>
 
 #include "acm_api.h"
 #include "audio_path.h"
@@ -85,12 +86,15 @@ static struct platform_config_t *mrvl_platform_cfg = NULL;
 static section_layout_t current_section = SECTION_UNKNOWN;
 
 // get mic device from platform_audio_config.xml config
-unsigned int get_mic_dev(virtual_mode_t v_mode, unsigned int android_dev) {
+unsigned int get_mic_dev(virtual_mode_t v_mode, unsigned int android_dev)
+{
   struct android_dev_cfg_t *droiddev_cfg = mrvl_platform_cfg->droid_dev_cfg;
   unsigned int default_dev = HWDEV_INVALID;
 
-  while (droiddev_cfg) {
-    if (droiddev_cfg->android_dev == android_dev) {
+  while (droiddev_cfg)
+  {
+    if (droiddev_cfg->android_dev == android_dev)
+    {
       struct app_cfg_t *app_cfg = droiddev_cfg->app_cfg;
       while (app_cfg) {
         if (app_cfg->v_mode == v_mode) {
@@ -115,7 +119,8 @@ unsigned int get_mic_dev(virtual_mode_t v_mode, unsigned int android_dev) {
 }
 
 // get mic hw flag for connectivity and coupling
-unsigned int get_mic_hw_flag(unsigned int hw_dev) {
+unsigned int get_mic_hw_flag(unsigned int hw_dev)
+{
   unsigned int flags = 0;
   struct board_dev_cfg_t *dev_cfg = mrvl_platform_cfg->board_dev_cfg;
 
@@ -153,7 +158,8 @@ unsigned int get_mic_hw_flag(unsigned int hw_dev) {
   return flags;
 }
 
-static void get_android_dev_by_user_selection(char *dev_name) {
+static void get_android_dev_by_user_selection(char *dev_name)
+{
   uint32_t mic_mode = get_mic_mode();
 
   ALOGD("%s mic_mode= %d", __FUNCTION__, mic_mode);
@@ -175,7 +181,8 @@ static void get_android_dev_by_user_selection(char *dev_name) {
   }
 }
 
-static unsigned int get_android_dev_byname(char *dev_name) {
+static unsigned int get_android_dev_byname(char *dev_name)
+{
   if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BUILTIN_MIC")) {
     return AUDIO_DEVICE_IN_BUILTIN_MIC;
   } else if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BACK_MIC")) {
@@ -184,7 +191,8 @@ static unsigned int get_android_dev_byname(char *dev_name) {
   return 0;
 }
 
-static virtual_mode_t get_mode_byname(char *app_name) {
+static virtual_mode_t get_mode_byname(char *app_name)
+{
   int i = 0;
 
   for (i = 0; i < (int)(sizeof(vtrl_mode_name) / sizeof(char *)); i++) {
@@ -195,10 +203,11 @@ static virtual_mode_t get_mode_byname(char *app_name) {
   return V_MODE_INVALID;
 }
 
-static unsigned int get_hwdev_byname(char *dev_name) {
+static unsigned int get_hwdev_byname(char *dev_name)
+{
   int i = 0;
 
-  get_android_dev_by_user_selection(dev_name);  // Change the dev_name according
+  //get_android_dev_by_user_selection(dev_name);  // Change the dev_name according
                                                 // to the User-Selection (if
                                                 // needed)
 
@@ -210,350 +219,101 @@ static unsigned int get_hwdev_byname(char *dev_name) {
   return HWDEV_INVALID;
 }
 
-static void parseBoardDevice(struct platform_config_t *config_data,
-                             const char **attrs) {
-  struct board_dev_cfg_t *dev_cfg;
-  const char *connectivity = NULL;
-  const char *coupling = NULL;
-  int i = 0;
+int init_platform_config()
+{
+  const char *config_file = AUDIO_PLATFORM_CONFIG_FILE;
+  xmlDocPtr xml_doc;
+  xmlNodePtr root_elem;
+  xmlNodePtr node;
 
-  dev_cfg = (struct board_dev_cfg_t *)calloc(1, sizeof(struct board_dev_cfg_t));
+  ALOGI("%s: config file %s", __FUNCTION__, config_file);
 
-  if (dev_cfg == NULL) {
-    ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
-    return;
+  xml_doc = xmlParseFile(config_file);
+  if( !xml_doc )
+  {
+    ALOGE("%s: failed to parse xml file %s: %s", __FUNCTION__, config_file, strerror(errno));
+    return -1
   }
-
-  while (attrs[i] != NULL) {
-    if (strcmp("connectivity", attrs[i]) == 0) {
-      connectivity = attrs[i + 1];
-      ++i;
-    } else if (strcmp("coupling", attrs[i]) == 0) {
-      coupling = attrs[i + 1];
-    }
-
-    ++i;
-  }
-
-  if (connectivity != NULL) {
-    ALOGD("%s: connectivity = \"%s\"", __FUNCTION__, connectivity);
-    if (!strcmp(connectivity, "diff")) {
-      dev_cfg->connectivity = CONNECT_DIFF;
-    } else if (!strcmp(connectivity, "quasi_diff")) {
-      dev_cfg->connectivity = CONNECT_QUASI_DIFF;
-    } else if (!strcmp(connectivity, "single_ended")) {
-      dev_cfg->connectivity = CONNECT_SINGLE_ENDED;
-    } else {
-      dev_cfg->connectivity = CONNECT_UNKNOWN;
-    }
-  } else {
-    ALOGE("[device in board] failed to find the attribute connectivity");
-    return;
-  }
-
-  if (coupling != NULL) {
-    ALOGD("%s: coupling = \"%s\"", __FUNCTION__, coupling);
-    if (!strcmp(coupling, "ac")) {
-      dev_cfg->coupling = COUPLING_AC;
-    } else if (!strcmp(coupling, "dc")) {
-      dev_cfg->coupling = COUPLING_DC;
-    } else {
-      dev_cfg->coupling = COUPLING_UNKNOWN;
-    }
-  } else {
-    ALOGE("[device in board] failed to find the attribute coupling");
-    return;
-  }
-
-  config_data->current_board_device = dev_cfg;
-}
-
-static void finishBoardDevice(struct platform_config_t *config_data,
-                              char *device_name) {
-  ALOGD("%s: find board config device %s", __FUNCTION__, device_name);
-
-  if (config_data->current_board_device != NULL) {
-    config_data->current_board_device->hw_dev = get_hwdev_byname(device_name);
-
-    if (config_data->board_dev_cfg == NULL) {
-      config_data->board_dev_cfg = config_data->current_board_device;
-    } else {
-      struct board_dev_cfg_t *last_dev_cfg = config_data->board_dev_cfg;
-      while (last_dev_cfg->next) last_dev_cfg = last_dev_cfg->next;
-      last_dev_cfg->next = config_data->current_board_device;
-    }
-    config_data->current_board_device = NULL;
-  } else {
-    ALOGE("%s:%d current_board_device is null", __FUNCTION__, __LINE__);
-  }
-}
-
-static void addAndroidDevice(struct platform_config_t *config_data,
-                             const char **attrs) {
-  // Save Android Device information, support multi devices config
-  struct android_dev_cfg_t *droid_dev_cfg;
-  const char *android_dev = NULL;
-
-  droid_dev_cfg =
-      (struct android_dev_cfg_t *)calloc(1, sizeof(struct android_dev_cfg_t));
-
-  if (droid_dev_cfg == NULL) {
-    ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
-    return;
-  }
-
-  if (strcmp("identifier", attrs[0]) == 0) {
-    android_dev = attrs[1];
-  }
-
-  if (android_dev != NULL) {
-    droid_dev_cfg->android_dev = get_android_dev_byname((char *)android_dev);
-    ALOGD("%s: find android dev identifier %s", __FUNCTION__, android_dev);
-  } else {
-    ALOGE(
-        "Can't find the identifier for AndroidDevice. attrs[0][%s], "
-        "attrs[1][%s]",
-        attrs[0], attrs[1]);
-  }
-
-  // add android device config to list
-  if (config_data->droid_dev_cfg == NULL) {
-    config_data->droid_dev_cfg = droid_dev_cfg;
-  } else {
-    struct android_dev_cfg_t *last_path_cfg = config_data->droid_dev_cfg;
-    while (last_path_cfg->next) last_path_cfg = last_path_cfg->next;
-    last_path_cfg->next = droid_dev_cfg;
-  }
-
-  config_data->current_droid_device = droid_dev_cfg;
-}
-
-static void addAppToAndroidDevice(struct platform_config_t *config_data,
-                                  const char **attrs) {
-  const char *app_name = NULL;
-  struct app_cfg_t *app_cfg = NULL;
-
-  app_cfg = (struct app_cfg_t *)calloc(1, sizeof(struct app_cfg_t));
-
-  if (app_cfg == NULL) {
-    ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
-    return;
-  }
-
-  if (strcmp("identifier", attrs[0]) == 0) {
-    app_name = attrs[1];
-  }
-
-  if (app_name != NULL) {
-    ALOGD("%s: find app config, identifier %s", __FUNCTION__, app_name);
-    app_cfg->v_mode = get_mode_byname((char *)app_name);
-  } else {
-    ALOGE(
-        "Can't find the identifier for Application. attrs[0][%s], attrs[1][%s]",
-        attrs[0], attrs[1]);
-    return;
-  }
-
-  if (config_data->current_droid_device != NULL) {
-    if (config_data->current_droid_device->app_cfg == NULL) {
-      config_data->current_droid_device->app_cfg = app_cfg;
-    } else {
-      struct app_cfg_t *last_app_cfg =
-          config_data->current_droid_device->app_cfg;
-      while (last_app_cfg->next) last_app_cfg = last_app_cfg->next;
-      last_app_cfg->next = app_cfg;
-    }
-  } else {
-    ALOGE("%s:%d current_droid_device is null", __FUNCTION__, __LINE__);
-    return;
-  }
-
-  config_data->current_app_cfg = app_cfg;
-}
-
-static void finishAppDroidDevice(struct platform_config_t *config_data,
-                                 char *device_name) {
-  if (device_name != NULL) {
-    ALOGD("%s: find android device  %s", __FUNCTION__, device_name);
-    config_data->current_app_cfg->device |= get_hwdev_byname(device_name);
-  } else {
-    ALOGE("%s: device name is NULL", __FUNCTION__);
-  }
-}
-
-static void XMLCALL
-startElementHandler(void *userData, const char *name, const char **attr) {
-  struct platform_config_t *config_data;
-
-  config_data = (struct platform_config_t *)userData;
-
-  if (strcmp("MarvellPlatformAudioConfiguration", name) == 0) {
-    current_section = SECTION_TOP_LEVEL;
-  } else if (strcmp("BoardDeviceList", name) == 0) {
-    if (current_section == SECTION_TOP_LEVEL) {
-      current_section = SECTION_BOARD_DEVICE_LIST;
-    } else {
-      ALOGE("Wrong section(%d) in parsing to section: BoardDeviceList",
-            current_section);
-      current_section = SECTION_UNKNOWN;
-    }
-  } else if (strcmp("AndroidDevice", name) == 0) {
-    if (current_section == SECTION_TOP_LEVEL) {
-      addAndroidDevice(config_data, attr);
-      current_section = SECTION_ANDROID_DEVICE;
-    } else {
-      ALOGE("Wrong section(%d) in parsing to section: AndroidDevice",
-            current_section);
-      current_section = SECTION_UNKNOWN;
-    }
-  } else if (strcmp("Application", name) == 0) {
-    if (current_section == SECTION_ANDROID_DEVICE) {
-      addAppToAndroidDevice(config_data, attr);
-      current_section = SECTION_APPLICATION;
-    } else {
-      ALOGE("Wrong section(%d) in parsing to section: Application",
-            current_section);
-      current_section = SECTION_UNKNOWN;
-    }
-  } else if (strcmp("Device", name) == 0) {
-    if (current_section == SECTION_BOARD_DEVICE_LIST) {
-      current_section = SECTION_DEVICE_IN_BOARD;
-      parseBoardDevice(config_data, attr);
-    } else if (current_section == SECTION_APPLICATION) {
-      current_section = SECTION_DEVICE_IN_ANDROID;
-    }
-  } else {
-    ALOGE("Wrong element(%s), current section is %d", name, current_section);
-  }
-}
-
-static void XMLCALL endElementHandler(void *userData, const char *name) {
-  struct platform_config_t *config_data;
-
-  config_data = (struct platform_config_t *)userData;
-  if (strcmp("Application", name) == 0) {
-    current_section = SECTION_ANDROID_DEVICE;
-    config_data->current_device_name
-        .name[config_data->current_device_name.len] = '\0';
-    finishAppDroidDevice(config_data, config_data->current_device_name.name);
-    config_data->current_device_name.len = 0;
-    config_data->current_app_cfg = NULL;
-  } else if (strcmp("AndroidDevice", name) == 0) {
-    current_section = SECTION_TOP_LEVEL;
-    config_data->current_droid_device = NULL;
-  } else if (strcmp("BoardDeviceList", name) == 0) {
-    current_section = SECTION_TOP_LEVEL;
-  } else if (strcmp("Device", name) == 0) {
-    if (current_section == SECTION_DEVICE_IN_BOARD) {
-      current_section = SECTION_BOARD_DEVICE_LIST;
-      config_data->current_device_name
-          .name[config_data->current_device_name.len] = '\0';
-      finishBoardDevice(config_data, config_data->current_device_name.name);
-      config_data->current_device_name.len = 0;
-    } else if (current_section == SECTION_DEVICE_IN_ANDROID) {
-      current_section = SECTION_APPLICATION;
-    }
-  }
-}
-
-static void XMLCALL
-characterDataHandler(void *userData, const XML_Char *s, int len) {
-  struct platform_config_t *config_data;
-
-  config_data = (struct platform_config_t *)userData;
-
-  if (current_section == SECTION_DEVICE_IN_BOARD ||
-      current_section == SECTION_DEVICE_IN_ANDROID) {
-    strncpy(config_data->current_device_name.name +
-                config_data->current_device_name.len,
-            s, len);
-    config_data->current_device_name.len += len;
-  }
-}
-
-int init_platform_config() {
-  char *config_file_name = AUDIO_PLATFORM_CONFIG_FILE;
-  XML_Parser parser;
-  FILE *file;
-  parsing_check_t parsing_check = PARSING_OK;
-
-  file = fopen(config_file_name, "r");
-
-  if (file == NULL) {
-    ALOGE("unable to open platform audio configuration xml file: %s",
-          config_file_name);
-    return -1;
-  } else {
-    ALOGI("%s: config file %s", __FUNCTION__, config_file_name);
-  }
-
-  mrvl_platform_cfg =
-      (struct platform_config_t *)calloc(1, sizeof(struct platform_config_t));
-
-  if (mrvl_platform_cfg == NULL) {
-    ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
-    fclose(file);
-    return -1;
-  }
-  ALOGI(
-      "current_board_device = %p, current_droid_device=%p, device name len=%d",
-      mrvl_platform_cfg->current_board_device,
-      mrvl_platform_cfg->current_droid_device,
-      mrvl_platform_cfg->current_device_name.len);
-
-  parser = XML_ParserCreate(NULL);
-  if (!parser) {
-    ALOGE("%s: Couldn't allocate memory for parser\n", __FUNCTION__);
+  
+  root_elem = xmlDocGetRootElement(xml_doc);
+  if( !root_elem )
+  {
+    ALOGE("%s: failed to get root element in %s", __FUNCTION__, config_file);
+    xmlFreeDoc(xml_doc);
     return -1;
   }
 
-  XML_SetUserData(parser, mrvl_platform_cfg);
-  XML_SetElementHandler(parser, startElementHandler, endElementHandler);
-  XML_SetCharacterDataHandler(parser, characterDataHandler);
+  if( xmlStrcmp(root_elem->name, "MarvellPlatformAudioConfiguration") )
+  {
+    ALOGE("%s: wrong type document, root node != MarvellPlatformAudioConfiguration", __FUNCTION__);
+    xmlFreeDoc(xml_doc);
+    return -1;
+  }
 
-  mrvl_platform_cfg->current_device_name.len = 0;
+  mrvl_platform_cfg = (platform_config_t*)calloc(1, sizeof(platform_config_t));
+  if( !mrvl_platform_cfg )
+  {
+    ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
+    xmlFreeDoc(xml_doc);
+    return -1;
+  }
 
-  const int BUFF_SIZE = 512;
-  while (parsing_check == PARSING_OK) {
-    void *buff = XML_GetBuffer(parser, BUFF_SIZE);
-    if (buff == NULL) {
-      ALOGE("failed in call to XML_GetBuffer()");
-      parsing_check = PARSING_UNKNOWN_ERROR;
-      break;
+  for( node = root_elem->children; node; node = node->next )
+  {
+    if( !xmlStrcmp(node->name, "BoardDeviceList") )
+    {
+      parse_board_devlist(node->children, mrvl_platform_cfg);
     }
+    else if( !xmlStrcmp(node->name, "AndroidDevice") )
+    {
+      xmlNodePtr app_node;
+      xmlChar xml_prop;
+      android_dev_cfg_t *droid_dev_cfg = (android_dev_cfg_t*)calloc(1, sizeof(android_dev_cfg_t));
 
-    int bytes_read = fread(buff, 1, BUFF_SIZE, file);
-    if (bytes_read < 0) {
-      ALOGE("failed in call to read");
-      parsing_check = PARSING_ERROR_IO;
-      break;
-    }
+      if( !droid_dev_cfg )
+      {
+        ALOGE("%s/L%d: out of memory", __FUNCTION__, __LINE__);
+        free(mrvl_platform_cfg);
+        mrvl_platform_cfg = NULL;
+        xmlFreeDoc(xml_doc);
+        return -1;
+      }
 
-    enum XML_Status status =
-        XML_ParseBuffer(parser, bytes_read, bytes_read == 0);
-    if (status != XML_STATUS_OK) {
-      ALOGE("malformed (%s)", XML_ErrorString(XML_GetErrorCode(parser)));
-      parsing_check = PARSING_ERROR_MALFORMED;
-      break;
-    }
-
-    if (bytes_read == 0) {
-      break;
+      xml_prop = xmlGetProp(node, "identifier");
+      if( xml_prop )
+      {
+        droid_dev_cfg->android_dev = get_android_dev_byname(xml_prop);
+        ALOGI("%s: find android dev identifier %s", __FUNCTION__, xml_prop);
+        xmlFree(xml_prop);
+      }
+      for( app_node = node->children; app_node; app_node = app_node->next )
+      {
+        if( !xmlStrcmp(app_node->name, "Application") )
+        {
+          parse_app_config(app_node, droid_dev_cfg);
+        }
+      } 
+      if( mrvl_platform_cfg->droid_dev_cfg )
+      {
+        android_dev_cfg_t *tmp_dev_cfg = mrvl_platform_cfg->droid_dev_cfg;
+        while( tmp_dev_cfg->next )
+          tmp_dev_cfg = tmp_dev_cfg->next;
+        tmp_dev_cfg->next = droid_dev_cfg;
+      }
+      else
+      {
+          mrvl_platform_cfg->droid_dev_cfg = droid_dev_cfg;
+      }
     }
   }
 
-  XML_ParserFree(parser);
-
-  fclose(file);
-  file = NULL;
-
-  ALOGI("%s: config file %s finished parsing", __FUNCTION__, config_file_name);
-
+  xmlFreeDoc(xml_doc);
   return 0;
 }
 
 // free global platform configuration
-void deinit_platform_config() {
+void deinit_platform_config()
+{
   struct android_dev_cfg_t *tmp_droiddev_cfg = NULL;
   struct board_dev_cfg_t *tmp_board_dev_cfg = NULL;
 

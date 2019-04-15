@@ -73,16 +73,11 @@ static const struct {
     {HWDEV_AMIC1, 0, PATH_NAME(FromAMic1), PATH_NAME(AMic1)},
     {HWDEV_AMIC1_SPK_MODE, 0, PATH_NAME(FromAMic1(Speaker Mode)),
      PATH_NAME(AMic1(Speaker Mode))},
-    {HWDEV_AMIC1_HP_MODE, 0, PATH_NAME(FromAMic1(Headphone Mode)),
-     PATH_NAME(AMic1(Headphone Mode))},
     {HWDEV_AMIC2, 0, PATH_NAME(FromAMic2), PATH_NAME(AMic2)},
     {HWDEV_AMIC2_SPK_MODE, 0, PATH_NAME(FromAMic2(Speaker Mode)),
      PATH_NAME(AMic2(Speaker Mode))},
-    {HWDEV_AMIC2_HP_MODE, 0, PATH_NAME(FromAMic2(Headphone Mode)),
-     PATH_NAME(AMic2(Headphone Mode))},
     {HWDEV_DUAL_DMIC1, 0, PATH_NAME(FromDualDMic1), PATH_NAME(DualDMic1)},
     {HWDEV_DMIC1, 0, PATH_NAME(FromDMic1), PATH_NAME(DMic1)},
-    {HWDEV_DMIC2, 0, PATH_NAME(FromDMic2), PATH_NAME(DMic2)},
     {HWDEV_HSMIC, 0, PATH_NAME(FromHsMic), PATH_NAME(HsMic)},
     {HWDEV_BTMIC_NB, 0, PATH_NAME(FromBTMicNB), NULL},
     {HWDEV_BTMIC_NREC_OFF_NB, 0, PATH_NAME(FromBTMicNB(NREC Mode)), NULL},
@@ -91,8 +86,6 @@ static const struct {
     {HWDEV_DUAL_AMIC, 0, PATH_NAME(FromDualAMic), PATH_NAME(DualAMic)},
     {HWDEV_DUAL_AMIC_SPK_MODE, 0, PATH_NAME(FromDualAMic(Speaker Mode)),
      PATH_NAME(DualAMic(Speaker Mode))},
-    {HWDEV_DUAL_AMIC_HP_MODE, 0, PATH_NAME(FromDualAMic(Headphone Mode)),
-     PATH_NAME(DualAMic(Headphone Mode))},
     {HWDEV_IN_TTY, 0, PATH_NAME(FromHsMic), PATH_NAME(HsMic)},
     {HWDEV_IN_TTY_VCO_AMIC1, 0, PATH_NAME(FromAMic1), PATH_NAME(AMic1)},
     {HWDEV_IN_TTY_VCO_AMIC2, 0, PATH_NAME(FromAMic2), PATH_NAME(AMic2)},
@@ -347,8 +340,8 @@ static const struct {
     {V_MODE_APP_LOOPBACK, HWDEV_HSMIC, 0, PATH_NAME(VoipRecordFromHsMic)},
 };
 
-static void handle_ctl_info(char *path_name, int method, char *old_path_name,
-                            int val) {
+static void handle_ctl_info(char *path_name, int method, int val)
+{
   ACM_ReturnCode ret = ACM_RC_OK;
   if (path_name == NULL) {
     ALOGI("%s NULL path, return directly", __FUNCTION__);
@@ -374,8 +367,8 @@ static void handle_ctl_info(char *path_name, int method, char *old_path_name,
       break;
     case METHOD_SWITCH:
       ALOGI("Switch from old path %s to path %s, value is 0x%08x",
-            old_path_name, path_name, val);
-      ret = ACMAudioPathSwitch(old_path_name, path_name, val);
+            NULL, path_name, val);
+      ret = ACMAudioPathSwitch(NULL, path_name, val);
       break;
     default:
       ALOGI("not support method %d\n", method);
@@ -392,9 +385,12 @@ char *get_vrtl_path(virtual_mode_t v_mode, unsigned int hw_dev,
   int i = 0;
 
   // find ACM path and enable/disable it through ACM
-  for (i = 0; i < (int)MAX_NUM_VRTL; i++) {
+  for (i = 0; i < (int)MAX_NUM_VRTL; i++)
+  {
     if ((gPathVirtual[i].v_mode == v_mode) &&
-        (gPathVirtual[i].device == hw_dev) && (gPathVirtual[i].flag == flag)) {
+        (gPathVirtual[i].device == hw_dev) &&
+        (gPathVirtual[i].flag == flag))
+    {
       ALOGD("%s find path %s", __FUNCTION__, gPathVirtual[i].path_name);
       return gPathVirtual[i].path_name;
     }
@@ -404,9 +400,9 @@ char *get_vrtl_path(virtual_mode_t v_mode, unsigned int hw_dev,
 }
 
 // parameter "flag" is used to search virtual path in audio HAL
-// parameter "value" is used for register value setting in ACM
 void route_vrtl_path(virtual_mode_t v_mode, int hw_dev, int enable,
-                     unsigned int flag, unsigned int value) {
+                     unsigned int flag, int value)
+{
   char *path = NULL;
   ALOGI("%s mode %d hw_dev 0x%x %s", __FUNCTION__, v_mode, hw_dev,
         (enable == METHOD_ENABLE) ? "enable" : "disable");
@@ -417,11 +413,12 @@ void route_vrtl_path(virtual_mode_t v_mode, int hw_dev, int enable,
     // for normal Hifi/Voice call path, gain still use fix value
     // for force speaker/FM, we set path mute first, set_volume will set correct
     // volume
-    handle_ctl_info(path, enable, NULL, value);
+    handle_ctl_info(path, enable, value);
   }
 }
 
-void route_hw_device(unsigned int hw_dev, int enable, unsigned int value) {
+void route_hw_device(unsigned int hw_dev, int enable, unsigned int value)
+{
   int i = 0;
   ALOGI("%s hw_dev 0x%x %s", __FUNCTION__, hw_dev,
         (enable == METHOD_ENABLE) ? "enable" : "disable");
@@ -433,17 +430,18 @@ void route_hw_device(unsigned int hw_dev, int enable, unsigned int value) {
       ALOGD("%s find path %s and %s", __FUNCTION__, gPathDevice[i].apu_path,
             gPathDevice[i].codec_path);
       if (enable == METHOD_ENABLE) {
-        handle_ctl_info(gPathDevice[i].apu_path, enable, NULL, value);
-        handle_ctl_info(gPathDevice[i].codec_path, enable, NULL, value);
+        handle_ctl_info(gPathDevice[i].apu_path, enable, value);
+        handle_ctl_info(gPathDevice[i].codec_path, enable, value);
       } else {
-        handle_ctl_info(gPathDevice[i].codec_path, enable, NULL, value);
-        handle_ctl_info(gPathDevice[i].apu_path, enable, NULL, value);
+        handle_ctl_info(gPathDevice[i].codec_path, enable, value);
+        handle_ctl_info(gPathDevice[i].apu_path, enable, value);
       }
     }
   }
 }
 
-void route_interface(path_interface_t path_itf, int enable) {
+void route_interface(path_interface_t path_itf, int enable)
+{
   unsigned int value = 0;
   int i = 0;
   ALOGI("%s path_interface %d %s", __FUNCTION__, path_itf,
@@ -458,27 +456,29 @@ void route_interface(path_interface_t path_itf, int enable) {
   for (i = 0; i < (int)MAX_NUM_ITF; i++) {
     if (gPathInterface[i].i_path == path_itf) {
       ALOGI("%s find path %s", __FUNCTION__, gPathInterface[i].path_name);
-      handle_ctl_info(gPathInterface[i].path_name, enable, NULL, value);
+      handle_ctl_info(gPathInterface[i].path_name, enable, value);
     }
   }
 }
 
 // setting hardware volume accroding to virtual mode and hw device
-void set_hw_volume(virtual_mode_t v_mode, int hw_dev, unsigned int value) {
+void set_hw_volume(virtual_mode_t v_mode, int hw_dev, unsigned int value)
+{
   char *path = NULL;
 
   path = get_vrtl_path(v_mode, hw_dev, 0);
 
   if (path != NULL) {
     ALOGI("%s path %s volume set to 0x%x\n", __FUNCTION__, path, value);
-    handle_ctl_info(path, METHOD_VOLUME_SET, NULL, value);
+    handle_ctl_info(path, METHOD_VOLUME_SET, value);
   }
 }
 
 // get MSA gain from ACM xml according to special device
 void get_msa_gain(unsigned int hw_dev, unsigned char volume,
                   signed char *ret_gain, signed char *ret_gain_wb,
-                  bool use_extra_vol) {
+                  bool use_extra_vol)
+{
   int extra_volume =
       (use_extra_vol ? MSA_GAIN_EXTRA_MODE : MSA_GAIN_NORMAL_MODE);
   signed char tmp_msa_gain = MSA_GAIN_DEFAULT;

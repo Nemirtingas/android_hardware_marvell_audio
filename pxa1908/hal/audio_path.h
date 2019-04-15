@@ -54,33 +54,29 @@
 #define HWDEV_DMIC1 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 2))
 #define HWDEV_DMIC2 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 3))
 #define HWDEV_AMIC1_SPK_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 4))
-#define HWDEV_AMIC1_HP_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 5))
-#define HWDEV_AMIC2_SPK_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 6))
-#define HWDEV_AMIC2_HP_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 7))
-#define HWDEV_DUAL_DMIC1 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 8))
-#define HWDEV_HSMIC (HWDEV_BIT_IN | (HWDEV_IN_BASE << 9))
-#define HWDEV_BTMIC_NB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 10))
-#define HWDEV_BTMIC_NREC_OFF_NB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 11))
-#define HWDEV_BTMIC_WB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 12))
-#define HWDEV_BTMIC_NREC_OFF_WB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 13))
-#define HWDEV_DUAL_AMIC (HWDEV_BIT_IN | (HWDEV_IN_BASE << 14))
-#define HWDEV_DUAL_AMIC_SPK_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 15))
-#define HWDEV_DUAL_AMIC_HP_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 16))
-#define HWDEV_IN_TTY (HWDEV_BIT_IN | (HWDEV_IN_BASE << 17))
-#define HWDEV_IN_TTY_VCO (HWDEV_BIT_IN | (HWDEV_IN_BASE << 18))
-#define HWDEV_IN_TTY_VCO_AMIC1 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 19))
-#define HWDEV_IN_TTY_VCO_AMIC2 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 20))
-#define HWDEV_IN_TTY_VCO_DUAL_AMIC (HWDEV_BIT_IN | (HWDEV_IN_BASE << 21))
+#define HWDEV_AMIC2_SPK_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 5))
+#define HWDEV_DUAL_DMIC1 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 6))
+#define HWDEV_HSMIC (HWDEV_BIT_IN | (HWDEV_IN_BASE << 7))
+#define HWDEV_BTMIC_NB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 8))
+#define HWDEV_BTMIC_NREC_OFF_NB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 9))
+#define HWDEV_BTMIC_WB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 10))
+#define HWDEV_BTMIC_NREC_OFF_WB (HWDEV_BIT_IN | (HWDEV_IN_BASE << 11))
+#define HWDEV_DUAL_AMIC (HWDEV_BIT_IN | (HWDEV_IN_BASE << 12))
+#define HWDEV_DUAL_AMIC_SPK_MODE (HWDEV_BIT_IN | (HWDEV_IN_BASE << 13))
+#define HWDEV_IN_TTY (HWDEV_BIT_IN | (HWDEV_IN_BASE << 14))
+#define HWDEV_IN_TTY_VCO (HWDEV_BIT_IN | (HWDEV_IN_BASE << 15))
+#define HWDEV_IN_TTY_VCO_AMIC1 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 16))
+#define HWDEV_IN_TTY_VCO_AMIC2 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 17))
+#define HWDEV_IN_TTY_VCO_DUAL_AMIC (HWDEV_BIT_IN | (HWDEV_IN_BASE << 18))
 #define HWDEV_IN_TTY_VCO_DUAL_AMIC_SPK_MODE \
-  (HWDEV_BIT_IN | (HWDEV_IN_BASE << 22))
-#define HWDEV_IN_TTY_VCO_DUAL_DMIC1 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 23))
+  (HWDEV_BIT_IN | (HWDEV_IN_BASE << 19))
+#define HWDEV_IN_TTY_VCO_DUAL_DMIC1 (HWDEV_BIT_IN | (HWDEV_IN_BASE << 20))
 
 // Mic Name, used to parse platform config xml
 static char *input_devname[] = {
-    "AMIC1", "AMIC2", "DMIC1", "DMIC2", "AMIC1_SPK_MODE", "AMIC1_HP_MODE",
-    "AMIC2_SPK_MODE", "AMIC2_HP_MODE", "DUAL_DMIC1", "HSMIC", "BTMIC_NB",
-    "BTMIC_NREC_OFF_NB", "BTMIC_WB", "BTMIC_NREC_OFF_WB", "DUAL_AMIC",
-    "DUAL_AMIC_SPK_MODE", "DUAL_AMIC_HP_MODE"};
+    "AMIC1", "AMIC2", "DMIC1", "DMIC2", "AMIC1_SPK_MODE", "AMIC2_SPK_MODE",
+    "DUAL_DMIC1", "HSMIC", "BTMIC_NB", "BTMIC_NREC_OFF_NB", "BTMIC_WB",
+    "BTMIC_NREC_OFF_WB", "DUAL_AMIC", "DUAL_AMIC_SPK_MODE"};
 
 /* mic mode in marvell settings */
 enum mic_modes {
@@ -140,9 +136,6 @@ typedef enum ID_VIRTUAL_MODE {
   V_MODE_VT,            // AUDIO_MODE_IN_VT_CALL
   V_MODE_HFP,           // HFP mode in AUDIO_MODE_IN_CALL
   V_MODE_FM,            // when FM_STATUS=on
-  V_MODE_CP_LOOPBACK,   // test cp loopback
-  V_MODE_HW_LOOPBACK,   // test hw loopback
-  V_MODE_APP_LOOPBACK,  // test app loopback
   V_MODE_DEF            // add for default config to choose HW device
 } virtual_mode_t;
 
@@ -157,8 +150,7 @@ struct vtrl_mode_priority_cfg {
 // add a new type Default, will be used when nothing matched
 static char *vtrl_mode_name[] = {"INVALID",     "HIFI_LL",      "HIFI_DB",
                                  "VoiceCall",   "VoIP",         "VT",
-                                 "HFP",         "FM",           "CP_LOOPBACK",
-                                 "HW_LOOPBACK", "APP_LOOPBACK", "Default"};
+                                 "HFP",         "FM",           "Default"};
 
 ///////////////////////////////////////////////////////////
 // definition of Audio Platform config interface

@@ -24,6 +24,7 @@ LOCAL_SRC_FILES:= \
     audio_effect_mrvl.c
 
 LOCAL_C_INCLUDES += \
+    external/libxml2/include \
     external/expat/lib \
     external/icu/icu4c/source/common \
     external/tinyalsa/include/ \
@@ -39,7 +40,8 @@ LOCAL_SHARED_LIBRARIES := \
     libaudioutils \
     libeffects \
     libexpat \
-    libacm
+    libacm \
+    libxml2
 
 LOCAL_MODULE:= audio.primary.mrvl
 LOCAL_MODULE_RELATIVE_PATH := hw
