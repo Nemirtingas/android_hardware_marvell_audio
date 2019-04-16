@@ -65,8 +65,8 @@ enum headset_type {
 #define ALSA_DEVICE_HFP 4
 #endif
 
-#define SAMPLE_RATE_OUT_DEFAULT 44100
-#define SAMPLE_RATE_IN_DEFAULT 44100
+#define SAMPLE_RATE_OUT_DEFAULT 48000
+#define SAMPLE_RATE_IN_DEFAULT 48000
 #define SAMPLE_RATE_PHONE 16000
 #define SAMPLE_RATE_VC_RECORDING 16000
 #define SAMPLE_RATE_OUT_FM 48000
@@ -90,7 +90,7 @@ enum headset_type {
 #define DEEP_BUFFER_LONG_PERIOD_COUNT 2
 
 #define LOW_LATENCY_INPUT_PERIOD_SIZE 960
-#define LOW_LATENCY_INPUT_PERIOD_COUNT 4
+#define LOW_LATENCY_INPUT_PERIOD_COUNT 2
 
 #define PHONE_OUTPUT_PERIOD_SIZE 320
 #define PHONE_OUTPUT_PERIOD_COUNT 2
@@ -198,7 +198,7 @@ struct virtual_path {
 struct mrvl_path_status {
   bool itf_state[ID_IPATH_TX_MAX + 1];  // output&input interface state
   bool mute_all_rx;   // all Rx sound should be muted
-  uint32_t mic_mode;  // mic mode in marvell settings
+//  uint32_t mic_mode;  // mic mode in marvell settings
   uint32_t active_out_device;
   uint32_t active_in_device;
   uint32_t enabled_in_hwdev;
@@ -210,6 +210,7 @@ struct mrvl_stream_out {
   struct audio_stream_out stream;
   struct mrvl_audio_device *dev;
   audio_format_t format;
+  //int64_t format;
   audio_channel_mask_t channel_mask;
   uint32_t sample_rate;
   pthread_mutex_t lock;
@@ -231,7 +232,8 @@ struct mrvl_stream_out {
 struct mrvl_stream_in {
   struct audio_stream_in stream;
   struct mrvl_audio_device *dev;
-  uint32_t format;
+  audio_format_t format;
+  //int64_t format;
   audio_channel_mask_t channel_mask;
   uint32_t sample_rate;
   int source;

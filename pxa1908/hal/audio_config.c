@@ -222,11 +222,11 @@ static unsigned int get_hwdev_byname(char *dev_name)
 static void parse_board_devlist(xmlNodePtr node, struct platform_config_t *config)
 {
   struct board_dev_cfg_t *dev_cfg;
-  xmlChar* connectivity, coupling, content;
+  xmlChar* connectivity, *coupling, *content;
 
   for( ; node; node = node->next )
   {
-    if( !xmlStrcmp(node->name, "Device") )
+    if( !xmlStrcmp(node->name, (xmlChar*)"Device") )
     {
       dev_cfg = (struct board_dev_cfg_t*)calloc(1, sizeof(struct board_dev_cfg_t));
       if( !dev_cfg )
@@ -238,23 +238,23 @@ static void parse_board_devlist(xmlNodePtr node, struct platform_config_t *confi
       content = xmlNodeGetContent(node);
       if( content )
       {
-        connectivity = xmlGetProp(node, "connectivity");
-        coupling = xmlGetProp(node, "coupling");
+        connectivity = xmlGetProp(node, (xmlChar*)"connectivity");
+        coupling = xmlGetProp(node, (xmlChar*)"coupling");
         ALOGI("%s: find board config device %s", __FUNCTION__, content);
-        dev_cfg->hw_dev = get_hwdev_byname(content);
+        dev_cfg->hw_dev = get_hwdev_byname((char*)content);
         xmlFree(content);
         if( connectivity )
         {
           ALOGI("%s: connectivity = \"%s\"", __FUNCTION__, connectivity);
-          if( !strcmp(connectivity, "diff") )
+          if( !strcmp((char*)connectivity, "diff") )
           {
             dev_cfg->connectivity = 0x20000;
           }
-          else if( !strcmp(connectivity, "quasi_diff") )
+          else if( !strcmp((char*)connectivity, "quasi_diff") )
           {
             dev_cfg->connectivity = 0x40000;
           }
-          else if( !strcmp(connectivity, "single_ended") )
+          else if( !strcmp((char*)connectivity, "single_ended") )
           {
             dev_cfg->connectivity = 0x80000;
           }
@@ -267,11 +267,11 @@ static void parse_board_devlist(xmlNodePtr node, struct platform_config_t *confi
         if( coupling )
         {
           ALOGI("%s: coupling = \"%s\"", __FUNCTION__, coupling);
-          if( !strcmp(coupling, "ac") )
+          if( !strcmp((char*)coupling, "ac") )
           {
             dev_cfg->coupling = 0x100000;
           }
-          else if( !strcmp(coupling, "dv") )
+          else if( !strcmp((char*)coupling, "dv") )
           {
             dev_cfg->coupling = 0x200000;
           }
@@ -311,23 +311,23 @@ static int parse_app_config(xmlNodePtr node, struct android_dev_cfg_t *config)
     return -1;
   }
 
-  xml_prop = xmlGetProp(node, "identifier");
+  xml_prop = xmlGetProp(node, (xmlChar*)"identifier");
   if( xml_prop )
   {
     ALOGI("%s: find app config, identifier %s", __FUNCTION__, xml_prop);
-    app_cfg->v_mode = get_mode_byname(xml_prop);
+    app_cfg->v_mode = get_mode_byname((char*)xml_prop);
     xmlFree(xml_prop);
   }
 
   for( app_node = node->children; app_node; app_node = app_node->next )
   {
-    if( !xmlStrcmp(app_node->name, "Device") )
+    if( !xmlStrcmp(app_node->name, (xmlChar*)"Device") )
     {
       value = xmlNodeGetContent(app_node);
       if( value )
       {
         ALOGI("%s: find device %s", __FUNCTION__, value);
-        app_cfg->device |= get_hwdev_byname(value);
+        app_cfg->device |= get_hwdev_byname((char*)value);
         xmlFree(value);
       }
     }
@@ -372,7 +372,7 @@ int init_platform_config()
     return -1;
   }
 
-  if( xmlStrcmp(root_elem->name, "MarvellPlatformAudioConfiguration") )
+  if( xmlStrcmp(root_elem->name, (xmlChar*)"MarvellPlatformAudioConfiguration") )
   {
     ALOGE("%s: wrong type document, root node != MarvellPlatformAudioConfiguration", __FUNCTION__);
     xmlFreeDoc(xml_doc);
@@ -389,14 +389,14 @@ int init_platform_config()
 
   for( node = root_elem->children; node; node = node->next )
   {
-    if( !xmlStrcmp(node->name, "BoardDeviceList") )
+    if( !xmlStrcmp(node->name, (xmlChar*)"BoardDeviceList") )
     {
       parse_board_devlist(node->children, mrvl_platform_cfg);
     }
-    else if( !xmlStrcmp(node->name, "AndroidDevice") )
+    else if( !xmlStrcmp(node->name, (xmlChar*)"AndroidDevice") )
     {
       xmlNodePtr app_node;
-      xmlChar xml_prop;
+      xmlChar* xml_prop;
       struct android_dev_cfg_t *droid_dev_cfg = (struct android_dev_cfg_t*)calloc(1, sizeof(struct android_dev_cfg_t));
 
       if( !droid_dev_cfg )
@@ -408,16 +408,16 @@ int init_platform_config()
         return -1;
       }
 
-      xml_prop = xmlGetProp(node, "identifier");
+      xml_prop = xmlGetProp(node, (xmlChar*)"identifier");
       if( xml_prop )
       {
-        droid_dev_cfg->android_dev = get_android_dev_byname(xml_prop);
+        droid_dev_cfg->android_dev = get_android_dev_byname((char*)xml_prop);
         ALOGI("%s: find android dev identifier %s", __FUNCTION__, xml_prop);
         xmlFree(xml_prop);
       }
       for( app_node = node->children; app_node; app_node = app_node->next )
       {
-        if( !xmlStrcmp(app_node->name, "Application") )
+        if( !xmlStrcmp(app_node->name, (xmlChar*)"Application") )
         {
           parse_app_config(app_node, droid_dev_cfg);
         }

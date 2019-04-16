@@ -48,6 +48,11 @@ LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS += -Wno-unused-parameter
 
+ifeq ($(BOARD_WITH_MRVL_AEC_AUDIO),true)
+   LOCAL_CFLAGS += -DMRVL_AEC
+   LOCAL_SRC_FILES += audio_aec.c
+endif
+
 ifeq ($(BOARD_WITH_TELEPHONY_AUDIO),true)
    LOCAL_CFLAGS += -DWITH_TELEPHONY
    LOCAL_SHARED_LIBRARIES += libvcm
