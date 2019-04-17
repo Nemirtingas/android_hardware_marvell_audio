@@ -96,7 +96,8 @@ unsigned int get_mic_dev(virtual_mode_t v_mode, unsigned int android_dev)
     if (droiddev_cfg->android_dev == android_dev)
     {
       struct app_cfg_t *app_cfg = droiddev_cfg->app_cfg;
-      while (app_cfg) {
+      while (app_cfg)
+      {
         if (app_cfg->v_mode == v_mode) {
           ALOGD("%s: find matched dev 0x%x", __FUNCTION__, app_cfg->device);
           return app_cfg->device;

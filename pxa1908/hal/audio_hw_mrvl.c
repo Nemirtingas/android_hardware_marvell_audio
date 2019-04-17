@@ -51,6 +51,8 @@
 #ifdef MRVL_AEC
 #include "audio_aec.h"
 #endif
+ 
+#define ENTER_FUNC() ALOGV("Entering %s", __FUNCTION__)
 
 static int loopback_param = 0;
 
@@ -200,11 +202,12 @@ static audio_format_t out_get_format(const struct audio_stream *stream);
 
 void dump_pcm_data( const char *dump_file, const char *buffer, size_t size )
 {
-
+  ENTER_FUNC();
 }
 
 unsigned char get_cpmute_rampdown_level()
 {
+  ENTER_FUNC();
   char prop_value[PROPERTY_VALUE_MAX];
   unsigned char level = 0;
   if (property_get("audio.cpmute.rampdown.level", prop_value, "0")) {
@@ -221,6 +224,7 @@ unsigned char get_cpmute_rampdown_level()
 
 unsigned char get_cpmute_rampup_level()
 {
+  ENTER_FUNC();
   char prop_value[PROPERTY_VALUE_MAX];
   unsigned char level = 0;
   if (property_get("audio.cpmute.rampup.level", prop_value, "0"))
@@ -240,12 +244,14 @@ unsigned char get_cpmute_rampup_level()
 }
 
 static bool is_in_voip_vt(audio_mode_t mode) {
+  ENTER_FUNC();
   return (AUDIO_MODE_IN_COMMUNICATION == mode || AUDIO_MODE_IN_VT_CALL == mode);
 }
 
 void add_vtrl_mode(struct listnode *mode_list, virtual_mode_t v_mode,
                    bool is_priority_highest)
 {
+  ENTER_FUNC();
   struct virtual_mode *vtrl_mode = calloc(1, sizeof(struct virtual_mode));
   if (vtrl_mode == NULL)
   {
@@ -265,6 +271,7 @@ void add_vtrl_mode(struct listnode *mode_list, virtual_mode_t v_mode,
 // VOIP/VT can only be concurrent with DeepBuffer
 void get_out_vrtl_mode(struct mrvl_audio_device *madev,
                        struct listnode *active_mode_list) {
+  ENTER_FUNC();
   int i = 0;
   bool is_highest = true;
   virtual_mode_t highest_mode = V_MODE_INVALID;
@@ -302,6 +309,7 @@ void get_out_vrtl_mode(struct mrvl_audio_device *madev,
 // get current active virtual mode for TX direction
 void get_in_vrtl_mode(struct mrvl_audio_device *madev, virtual_mode_t *v_mode)
 {
+  ENTER_FUNC();
   int i = 0;
   // the priorities of modes are sorted by descending order in array
   // priority_modes[]
@@ -324,6 +332,7 @@ void get_in_vrtl_mode(struct mrvl_audio_device *madev, virtual_mode_t *v_mode)
 unsigned int get_headset_hw_device(struct mrvl_audio_device *madev,
                                    unsigned int android_dev)
 {
+  ENTER_FUNC();
   unsigned int hardware_dev = HWDEV_INVALID;
 
   switch (android_dev)
@@ -394,6 +403,7 @@ unsigned int get_headset_hw_device(struct mrvl_audio_device *madev,
 
 // this function returns the tty param to be used for getting VCM Profile.
 static unsigned int get_tty_param(struct mrvl_audio_device *madev) {
+  ENTER_FUNC();
   unsigned int tty_param;
 
   switch (madev->tty_mode) {
@@ -429,6 +439,7 @@ static unsigned int get_tty_param(struct mrvl_audio_device *madev) {
 
 // this function returns the call param to be used for getting VCM Profile.
 static unsigned int get_call_params(struct mrvl_audio_device *madev) {
+  ENTER_FUNC();
   unsigned int params = 0;
 
   if (madev->use_extra_vol) {
@@ -453,6 +464,7 @@ static unsigned int get_call_params(struct mrvl_audio_device *madev) {
 // convert an android device to hardware device to control ACM
 unsigned int convert2_hwdev(struct mrvl_audio_device *madev,
                             unsigned int android_dev) {
+  ENTER_FUNC();
   unsigned int hardware_dev = HWDEV_INVALID;
   switch (android_dev) {
     case AUDIO_DEVICE_OUT_EARPIECE:
@@ -547,6 +559,7 @@ unsigned int convert2_hwdev(struct mrvl_audio_device *madev,
 int add_vrtl_path(struct listnode *path_node, struct virtual_mode *vtrl_mode,
                   unsigned device)
 {
+  ENTER_FUNC();
   struct virtual_path *v_path = calloc(1, sizeof(struct virtual_path));
   if (v_path == NULL) {
     return -1;
@@ -563,6 +576,7 @@ int add_vrtl_path(struct listnode *path_node, struct virtual_mode *vtrl_mode,
 // select corresponding input device by output device
 unsigned int get_input_dev(unsigned int out_device)
 {
+  ENTER_FUNC();
   unsigned int input_dev = AUDIO_DEVICE_IN_BUILTIN_MIC;
 
   out_device -= 2;
@@ -574,11 +588,13 @@ unsigned int get_input_dev(unsigned int out_device)
 
 int get_speaker_dev()
 {
+  ENTER_FUNC();
     return 0;
 }
 
 // check whether has active output interface
 static bool has_active_out_itf(void) {
+  ENTER_FUNC();
   int i;
   bool has_active_itf = false;
 
@@ -593,6 +609,7 @@ static bool has_active_out_itf(void) {
 
 // check whether has active input interface
 static bool has_active_in_itf(void) {
+  ENTER_FUNC();
   int i;
   bool has_active_itf = false;
 
@@ -607,6 +624,7 @@ static bool has_active_in_itf(void) {
 
 void get_active_vrtl_path(struct mrvl_audio_device *madev,
                           struct listnode *path_node) {
+  ENTER_FUNC();
   ALOGD("%s: out device 0x%x, in device 0x%x", __FUNCTION__,
         mrvl_path_manager.active_out_device,
         mrvl_path_manager.active_in_device);
@@ -645,7 +663,9 @@ void get_active_vrtl_path(struct mrvl_audio_device *madev,
   }
 }
 
-void select_virtual_path(struct mrvl_audio_device *madev) {
+void select_virtual_path(struct mrvl_audio_device *madev)
+{
+  ENTER_FUNC();
   unsigned int flag = 0;
   unsigned int value = 0;
   struct listnode active_v_path;
@@ -756,6 +776,31 @@ void select_virtual_path(struct mrvl_audio_device *madev) {
           route_vrtl_path(tmp_vpath->v_mode, hw_dev, METHOD_ENABLE, flag,
                           value);
           list_add_tail(&mrvl_path_manager.out_virtual_path, &tmp_vpath->link);
+
+          /* :!: TODO :!:
+          if ( v15[-2].prev == (struct listnode *)&byte_7 )
+    {
+      v29 = v1->fm_mute;
+      if ( v29 )
+      {
+        if ( v29 != 1 )
+          goto LABEL_68;
+        _android_log_print(3, "audio_hw_mrvl", "%s fm radio is mute", "select_virtual_path");
+        v33 = j_convert2_hwdev((int)v1, v28);
+        v31 = 0;
+        v32 = v33;
+      }
+      else
+      {
+        v30 = j_convert2_hwdev((int)v1, v28);
+        v31 = v1->fm_volume;
+        v32 = v30;
+      }
+      j_set_hw_volume(V_MODE_FM, v32, v31);
+    }
+          
+          */
+
         } else {
           free(tmp_vpath);
           tmp_vpath = NULL;
@@ -768,6 +813,7 @@ void select_virtual_path(struct mrvl_audio_device *madev) {
 // audio profile related functions
 uint32_t get_profile_flag(struct mrvl_audio_device *madev)
 {
+  ENTER_FUNC();
   uint32_t flag = 0;
 
   if (mrvl_path_manager.active_out_device & AUDIO_DEVICE_OUT_ALL_SCO)
@@ -799,6 +845,7 @@ uint32_t get_profile_flag(struct mrvl_audio_device *madev)
 }
 
 uint32_t get_profile(struct mrvl_audio_device *madev) {
+  ENTER_FUNC();
   int i = 0;
   uint32_t flag = get_profile_flag(madev);
 
@@ -821,6 +868,7 @@ uint32_t get_profile(struct mrvl_audio_device *madev) {
 
 void set_voice_call_volume(struct mrvl_audio_device *madev, float volume,
                            bool use_extra_vol) {
+  ENTER_FUNC();
   signed char input_gain = 0;
   signed char input_gain_wb = 0;
   signed char output_gain = 0;
@@ -842,6 +890,7 @@ void set_voice_call_volume(struct mrvl_audio_device *madev, float volume,
 }
 
 unsigned int get_loopback_headset_flag(struct mrvl_audio_device *madev) {
+  ENTER_FUNC();
   unsigned int flag = CONNECT_STEREO_HEADSET;
 
   /*
@@ -862,6 +911,7 @@ unsigned int get_loopback_headset_flag(struct mrvl_audio_device *madev) {
 
 void route_devices(struct mrvl_audio_device *madev, unsigned int devices,
                    int enable, unsigned int value) {
+  ENTER_FUNC();
   unsigned int hw_dev = 0;
   ALOGI("%s devices 0x%x %s", __FUNCTION__, devices,
         (enable == METHOD_ENABLE) ? "enable" : "disable");
@@ -909,6 +959,7 @@ void route_devices(struct mrvl_audio_device *madev, unsigned int devices,
 }
 
 static void select_input_device(struct mrvl_audio_device *madev) {
+  ENTER_FUNC();
   ALOGI("%s in_device 0x%x", __FUNCTION__, madev->in_device);
 
   // check active input interface to make sure device is configured later than
@@ -936,6 +987,7 @@ static void select_input_device(struct mrvl_audio_device *madev) {
   }
 
   // enable the new device
+  ALOGV("%s: enable %x", __FUNCTION__, madev->in_device);
   route_devices(madev, madev->in_device, METHOD_ENABLE, 0);
   mrvl_path_manager.active_in_device = madev->in_device;
 
@@ -947,6 +999,7 @@ static struct pcm *open_tiny_alsa_device(unsigned int device,
                                          unsigned int direction,
                                          struct pcm_config *config)
 {
+  ENTER_FUNC();
   ALOGI(
       "%s: device %u, direction %u, channels %u, sample_rate %u, period_size "
       "%u",
@@ -975,6 +1028,7 @@ static struct pcm *open_tiny_alsa_device(unsigned int device,
 
 static void select_output_device(struct mrvl_audio_device *madev)
 {
+  ENTER_FUNC();
   ALOGI("%s switch device from old device 0x%x to new device 0x%x ",
         __FUNCTION__, mrvl_path_manager.active_out_device, madev->out_device);
 
@@ -1086,6 +1140,7 @@ static void select_output_device(struct mrvl_audio_device *madev)
 
 static void select_interface(struct mrvl_audio_device *madev,
                              path_interface_t ipath, bool enable) {
+  ENTER_FUNC();
   int i = 0;
   ALOGI("%s path %d %s", __FUNCTION__, ipath, enable ? "enable" : "disable");
 
@@ -1149,6 +1204,7 @@ static void select_interface(struct mrvl_audio_device *madev,
 }
 
 static int start_output_stream_low_latency(struct mrvl_stream_out *out) {
+  ENTER_FUNC();
   int ret = 0;
   struct mrvl_audio_device *madev = out->dev;
   ALOGD("%s", __FUNCTION__);
@@ -1178,6 +1234,7 @@ static int start_output_stream_low_latency(struct mrvl_stream_out *out) {
 }
 
 static int start_output_stream_deep_buffer(struct mrvl_stream_out *out) {
+  ENTER_FUNC();
   int ret = 0;
   struct mrvl_audio_device *madev = out->dev;
   ALOGD("%s", __FUNCTION__);
@@ -1213,6 +1270,7 @@ static int start_output_stream_deep_buffer(struct mrvl_stream_out *out) {
 
 // must be called with hw device and output stream mutexes locked
 static int start_input_stream(struct mrvl_stream_in *in) {
+  ENTER_FUNC();
   int ret = 0;
   struct mrvl_audio_device *madev = in->dev;
   ALOGD("%s in->source %d", __FUNCTION__, in->source);
@@ -1221,8 +1279,10 @@ static int start_input_stream(struct mrvl_stream_in *in) {
     in->handle = NULL;
   }
 
-  if (in->source == AUDIO_SOURCE_FMRADIO) {
-    if (madev->mode != AUDIO_MODE_IN_CALL) {
+  if (in->source == AUDIO_SOURCE_FMRADIO)
+  {
+    if (madev->mode != AUDIO_MODE_IN_CALL)
+    {
       // FIXME, open alsa device
       in->handle = open_tiny_alsa_device(
           ALSA_DEVICE_DEFAULT, PCM_IN | PCM_NORESTART, &pcm_config_input);
@@ -1256,9 +1316,24 @@ static int start_input_stream(struct mrvl_stream_in *in) {
 
     // configure record input path if necessary
     if (madev->mode != AUDIO_MODE_IN_CALL) {
-      ramp_up_start(SAMPLE_RATE_IN_DEFAULT);
+      //ramp_up_start(SAMPLE_RATE_IN_DEFAULT);
       select_input_device(madev);
     }
+    /* :!: TODO :!:
+    v15 = str_parms_create();
+      PreProcessClear(v15);
+      str_parms_add_int(v15, "samplingrate", in->sample_rate);
+      v16 = _popcountsi2(in->channel_mask);
+      str_parms_add_int(v15, "channel", v16);
+      str_parms_add_int(v15, "format", in->format);
+      str_parms_add_int(v15, "inputsource", in->source);
+      v22 = (void *)str_parms_to_str(v15);
+      PreProcessSetParams((int)v22, v17);
+      PreProcessInit(1);
+      str_parms_destroy(v15);
+      if ( v22 )
+        free(v22);
+    */
   }
 
   madev->active_input = in;
@@ -1267,6 +1342,7 @@ static int start_input_stream(struct mrvl_stream_in *in) {
 }
 // must be called with hw device and input stream mutexes locked
 static int do_input_standby(struct mrvl_stream_in *in) {
+  ENTER_FUNC();
   ALOGI("%s in %p", __FUNCTION__, in);
   struct mrvl_audio_device *madev = in->dev;
 
@@ -1293,7 +1369,7 @@ static int do_input_standby(struct mrvl_stream_in *in) {
       pcm_close(in->handle);
       in->handle = NULL;
     }
-    madev->active_input = NULL;
+    madev->active_input = AUDIO_DEVICE_NONE;
   }
   return 0;
 }
@@ -1301,6 +1377,7 @@ static int do_input_standby(struct mrvl_stream_in *in) {
 // must be called with hw device and output stream mutexes locked
 static int do_output_standby(struct mrvl_stream_out *out)
 {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = out->dev;
   ALOGI("%s out %p standby %s", __FUNCTION__, out,
         out->standby ? "true" : "false");
@@ -1333,6 +1410,7 @@ static int do_output_standby(struct mrvl_stream_out *out)
 
 // must be called with hw device mutex locked
 static void force_all_standby(struct mrvl_audio_device *madev) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = NULL;
   struct mrvl_stream_in *in = NULL;
   // standby both low latency and deep buffer output and input.
@@ -1436,6 +1514,7 @@ static void set_fm_parameters(struct mrvl_audio_device *madev,
 
 static void set_fm_parameters(struct mrvl_audio_device *madev, struct str_parms *param)
 {
+  ENTER_FUNC();
     int32_t param_int;
     char buffer[92];
     ALOGI("%s: entering fm radio setting", __FUNCTION__);
@@ -1526,6 +1605,7 @@ exit_set_fm:
 
 static void set_hfp_parameters(struct mrvl_audio_device *madev, struct str_parms *param)
 {
+  ENTER_FUNC();
     int32_t param_int;
     char buffer[32];
 
@@ -1610,6 +1690,7 @@ static bool is_phone_call(int mode) { return (mode == AUDIO_MODE_IN_CALL); }
 
 static void select_mode(struct mrvl_audio_device *madev, int mode)
 {
+  ENTER_FUNC();
   int old_mode = madev->mode;
 
   // close FM when change mode from NORMAL to others
@@ -1748,6 +1829,7 @@ static void select_mode(struct mrvl_audio_device *madev, int mode)
 
 static void enable_loopback(struct mrvl_audio_device *madev, int loopback_type)
 {
+  ENTER_FUNC();
   ALOGI("%s: out_device 0x%x, in_device 0x%x", __FUNCTION__, madev->out_device,
         madev->in_device);
 
@@ -1822,6 +1904,7 @@ static void enable_loopback(struct mrvl_audio_device *madev, int loopback_type)
 
 static void disable_loopback(struct mrvl_audio_device *madev, int loopback_type)
 {
+  ENTER_FUNC();
   ALOGI("%s: out_device 0x%x, in_device 0x%x, loopback_type:%d", __FUNCTION__,
         madev->out_device, madev->in_device, loopback_type);
 
@@ -1864,11 +1947,13 @@ static void disable_loopback(struct mrvl_audio_device *madev, int loopback_type)
 // External Interfaces
 // ----------------------------------------------------------------------
 static uint32_t out_get_sample_rate(const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   return out->sample_rate;
 }
 
 static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   ALOGD("%s sample_rate %d", __FUNCTION__, rate);
   out->sample_rate = rate;
@@ -1877,6 +1962,7 @@ static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate) {
 
 static size_t out_get_buffer_size_low_latency(
     const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
 
   // take resampling into account and return the closest majoring
@@ -1903,16 +1989,19 @@ static size_t out_get_buffer_size_deep_buffer(
 
 static audio_channel_mask_t out_get_channels(
     const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   return out->channel_mask;
 }
 
 static audio_format_t out_get_format(const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   return (audio_format_t)out->format;
 }
 
 static int out_set_format(struct audio_stream *stream, audio_format_t format) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   ALOGD("%s", __FUNCTION__);
   out->format = format;
@@ -1920,6 +2009,7 @@ static int out_set_format(struct audio_stream *stream, audio_format_t format) {
 }
 
 static int out_standby(struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   struct mrvl_audio_device *madev = out->dev;
   ALOGI("%s out %p", __FUNCTION__, out);
@@ -1946,6 +2036,7 @@ static int out_standby(struct audio_stream *stream) {
 }
 
 static int out_dump(const struct audio_stream *stream, int fd) {
+  ENTER_FUNC();
   const size_t SIZE = 256;
   char buffer[SIZE];
   char result[SIZE];
@@ -1963,6 +2054,7 @@ static int out_dump(const struct audio_stream *stream, int fd) {
 
 static int out_set_parameters(struct audio_stream *stream,
                               const char *kvpairs) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   struct mrvl_audio_device *madev = out->dev;
   struct str_parms *parms;
@@ -2046,6 +2138,7 @@ static int out_set_parameters(struct audio_stream *stream,
 
 static char *out_get_parameters(const struct audio_stream *stream,
                                 const char *keys) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   struct mrvl_audio_device *madev = out->dev;
   struct str_parms *param;
@@ -2072,6 +2165,7 @@ static char *out_get_parameters(const struct audio_stream *stream,
 
 static uint32_t out_get_latency_low_latency(
     const struct audio_stream_out *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   ALOGD("%s period_size %d period_count %d", __FUNCTION__, out->period_size,
         out->period_count);
@@ -2080,6 +2174,7 @@ static uint32_t out_get_latency_low_latency(
 
 static uint32_t out_get_latency_deep_buffer(
     const struct audio_stream_out *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   ALOGD("%s period_size %d period_count %d", __FUNCTION__,
         DEEP_BUFFER_LONG_PERIOD_SIZE, DEEP_BUFFER_LONG_PERIOD_COUNT);
@@ -2089,11 +2184,13 @@ static uint32_t out_get_latency_deep_buffer(
 
 static int out_set_volume(struct audio_stream_out *stream, float left,
                           float right) {
+  ENTER_FUNC();
   return -ENOSYS;
 }
 
 static ssize_t out_write_low_latency(struct audio_stream_out *stream,
                                      const void *buffer, size_t bytes) {
+  ENTER_FUNC();
   int ret = -1;
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   struct mrvl_audio_device *madev = out->dev;
@@ -2181,6 +2278,7 @@ exit:
 
 static ssize_t out_write_deep_buffer(struct audio_stream_out *stream,
                                      const void *buffer, size_t bytes) {
+  ENTER_FUNC();
   int ret = -1;
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   struct mrvl_audio_device *madev = out->dev;
@@ -2279,12 +2377,14 @@ exit:
 
 static int out_get_render_position(const struct audio_stream_out *stream,
                                    uint32_t *dsp_frames) {
+  ENTER_FUNC();
   return -EINVAL;
 }
 
 static int out_get_presentation_position(const struct audio_stream_out *stream,
                                          uint64_t *frames,
                                          struct timespec *timestamp) {
+  ENTER_FUNC();
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
   int ret = -1;
 
@@ -2309,25 +2409,30 @@ static int out_get_presentation_position(const struct audio_stream_out *stream,
 
 static int out_add_audio_effect_fake(const struct audio_stream *stream,
                                      effect_handle_t effect) {
+  ENTER_FUNC();
   return 0;
 }
 
 static int out_remove_audio_effect_fake(const struct audio_stream *stream,
                                         effect_handle_t effect) {
+  ENTER_FUNC();
   return 0;
 }
 
 // audio_stream_in implementation
 static uint32_t in_get_sample_rate(const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   return in->sample_rate;
 }
 
 static int in_set_sample_rate(struct audio_stream *stream, uint32_t rate) {
+  ENTER_FUNC();
   return 0;
 }
 
 static size_t in_get_buffer_size(const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
 
   // take resampling into account and return the closest majoring
@@ -2340,20 +2445,24 @@ static size_t in_get_buffer_size(const struct audio_stream *stream) {
 }
 
 static uint32_t in_get_channels(const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   return in->channel_mask;
 }
 
 static audio_format_t in_get_format(const struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   return in->format;
 }
 
 static int in_set_format(struct audio_stream *stream, audio_format_t format) {
+  ENTER_FUNC();
   return 0;
 }
 
 static int in_standby_vc_rec(struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   ALOGI("%s in %p", __FUNCTION__, in);
 
@@ -2369,6 +2478,7 @@ static int in_standby_vc_rec(struct audio_stream *stream) {
 }
 
 static int in_standby_primary(struct audio_stream *stream) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   struct mrvl_audio_device *madev = in->dev;
   ALOGI("%s in %p", __FUNCTION__, in);
@@ -2403,6 +2513,7 @@ static int in_standby_primary(struct audio_stream *stream) {
 static int in_dump(const struct audio_stream *stream, int fd) { return 0; }
 
 static int in_set_parameters(struct audio_stream *stream, const char *kvpairs) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   struct mrvl_audio_device *madev = in->dev;
   struct str_parms *parms;
@@ -2454,6 +2565,7 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs) {
 
 static char *in_get_parameters(const struct audio_stream *stream,
                                const char *keys) {
+  ENTER_FUNC();
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)in->dev;
   ALOGV("%s: %s", __FUNCTION__, keys);
@@ -2481,11 +2593,13 @@ static char *in_get_parameters(const struct audio_stream *stream,
 
 static int in_add_audio_effect_fake(const struct audio_stream *stream,
                                     effect_handle_t effect) {
+  ENTER_FUNC();
   return 0;
 }
 
 static int in_remove_audio_effect_fake(const struct audio_stream *stream,
                                        effect_handle_t effect) {
+  ENTER_FUNC();
   return 0;
 }
 
@@ -2493,6 +2607,7 @@ static int in_set_gain(struct audio_stream_in *stream, float gain) { return 0; }
 
 static ssize_t in_read_vc_rec(struct audio_stream_in *stream, void *buffer,
                               size_t bytes) {
+  ENTER_FUNC();
   int ret = 0;
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
 
@@ -2532,6 +2647,7 @@ exit:
 
 static ssize_t in_read_primary(struct audio_stream_in *stream, void *buffer,
                                size_t bytes) {
+  ENTER_FUNC();
   int ret = 0;
   struct mrvl_stream_in *in = (struct mrvl_stream_in *)stream;
   struct mrvl_audio_device *madev = in->dev;
@@ -2585,7 +2701,7 @@ static ssize_t in_read_primary(struct audio_stream_in *stream, void *buffer,
 #endif
 
   // ramp down the data before disable TX and ramp up the data after enable TX
-  ramp_process(buffer, bytes);
+  //ramp_process(buffer, bytes);
 
 #ifdef WITH_ACOUSTIC
   if ((!is_in_voip_vt(madev->mode)) &&
@@ -2634,6 +2750,7 @@ static int mrvl_hw_dev_open_output_stream(
     struct audio_config *config, struct audio_stream_out **stream_out,
     const char *address)
 {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   struct mrvl_stream_out *out = NULL;
   int ret = 0;
@@ -2736,6 +2853,7 @@ err_open:
 
 static void mrvl_hw_dev_close_output_stream(struct audio_hw_device *dev,
                                             struct audio_stream_out *stream) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   struct mrvl_stream_out *out = (struct mrvl_stream_out *)stream;
 
@@ -2773,6 +2891,7 @@ static void mrvl_hw_dev_close_output_stream(struct audio_hw_device *dev,
 
 static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
                                       const char *kvpairs) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   struct str_parms *param = NULL;
   char value[32] = {0};
@@ -3215,6 +3334,7 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
 
 static char *mrvl_hw_dev_get_parameters(const struct audio_hw_device *dev,
                                         const char *keys) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   char *ret_val = NULL;
   char val_str[32];
@@ -3249,12 +3369,13 @@ static char *mrvl_hw_dev_get_parameters(const struct audio_hw_device *dev,
 
 static int mrvl_hw_dev_init_check(const struct audio_hw_device *dev)
 {
-  ALOGI("%s", __FUNCTION__);
+  ENTER_FUNC();
   return 0;
 }
 
 static int mrvl_hw_dev_set_voice_volume(struct audio_hw_device *dev,
                                         float volume) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   ALOGI("%s volume %f", __FUNCTION__, volume);
   madev->voice_volume = volume;
@@ -3266,11 +3387,13 @@ static int mrvl_hw_dev_set_voice_volume(struct audio_hw_device *dev,
 
 static int mrvl_hw_dev_set_master_volume(struct audio_hw_device *dev,
                                          float volume) {
+  ENTER_FUNC();
   return -ENOSYS;
 }
 
 static int mrvl_hw_dev_set_mode(struct audio_hw_device *dev, int mode)
 {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   ALOGI("%s mode %d", __FUNCTION__, mode);
 
@@ -3287,6 +3410,7 @@ static int mrvl_hw_dev_set_mode(struct audio_hw_device *dev, int mode)
 }
 
 static int mrvl_hw_dev_set_mic_mute(struct audio_hw_device *dev, bool state) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   ALOGI("%s: state %s, mic_mute %s", __FUNCTION__, state ? "mute" : "unmute",
         madev->mic_mute ? "mute" : "unmute");
@@ -3307,6 +3431,7 @@ static int mrvl_hw_dev_set_mic_mute(struct audio_hw_device *dev, bool state) {
 
 static int mrvl_hw_dev_get_mic_mute(const struct audio_hw_device *dev,
                                     bool *state) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   ALOGD("%s: %s", __FUNCTION__, madev->mic_mute ? "mute" : "unmute");
 
@@ -3317,6 +3442,7 @@ static int mrvl_hw_dev_get_mic_mute(const struct audio_hw_device *dev,
 static size_t mrvl_hw_dev_get_input_buffer_size(
     const struct audio_hw_device *dev, const struct audio_config *config)
 {
+  ENTER_FUNC();
   int buffersize = 0;
   if (config->format != AUDIO_FORMAT_PCM_16_BIT) {
     ALOGW("%s: bad format: %d", __FUNCTION__, config->format);
@@ -3340,6 +3466,7 @@ static int mrvl_hw_dev_open_input_stream(struct audio_hw_device *dev,
                                          audio_input_flags_t flags,
                                          const char *address,
                                          audio_source_t source) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   struct mrvl_stream_in *in;
   int input_type = 0;
@@ -3405,7 +3532,8 @@ static int mrvl_hw_dev_open_input_stream(struct audio_hw_device *dev,
   in->acoustic_manager = 0;
 #endif
 
-  if (config != NULL) {
+  if (config != NULL)
+  {
     config->format = in->stream.common.get_format(&in->stream.common);
     config->channel_mask = in->stream.common.get_channels(&in->stream.common);
     config->sample_rate = in->stream.common.get_sample_rate(&in->stream.common);
@@ -3446,6 +3574,7 @@ static void mrvl_hw_dev_close_input_stream(struct audio_hw_device *dev,
 }
 
 static int mrvl_hw_dev_dump(const audio_hw_device_t *device, int fd) {
+  ENTER_FUNC();
   const size_t SIZE = 256;
   char buffer[SIZE];
   char result[SIZE];
@@ -3459,6 +3588,7 @@ static int mrvl_hw_dev_create_audio_patch(
     struct audio_hw_device *dev, unsigned int num_sources,
     const struct audio_port_config *sources, unsigned int num_sinks,
     const struct audio_port_config *sinks, audio_patch_handle_t *handle) {
+  ENTER_FUNC();
   ALOGI("%s: num_sources %d num_sinks %d handle %d", __FUNCTION__, num_sources,
         num_sinks, *handle);
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
@@ -3610,6 +3740,7 @@ static int mrvl_hw_dev_create_audio_patch(
 
 static int mrvl_hw_dev_release_audio_patch(struct audio_hw_device *dev,
                                            audio_patch_handle_t handle) {
+  ENTER_FUNC();
   ALOGI("%s: audio patch handle is %d", __FUNCTION__, handle);
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)dev;
   bool do_standby = false;
@@ -3667,17 +3798,18 @@ static int mrvl_hw_dev_release_audio_patch(struct audio_hw_device *dev,
 
 static int mrvl_hw_dev_get_audio_port(struct audio_hw_device *dev,
                                       struct audio_port *port) {
-  ALOGI("%s", __FUNCTION__);
+  ENTER_FUNC();
   return 0;
 }
 
 static int mrvl_hw_dev_set_audio_port_config(
     struct audio_hw_device *dev, const struct audio_port_config *config) {
-  ALOGI("%s", __FUNCTION__);
+  ENTER_FUNC();
   return 0;
 }
 
 static int mrvl_hw_dev_close(hw_device_t *device) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = (struct mrvl_audio_device *)device;
 
   // Deinit acm module
@@ -3715,6 +3847,7 @@ static int mrvl_hw_dev_close(hw_device_t *device) {
 static uint32_t mrvl_hw_dev_get_supported_devices(
     const struct audio_hw_device *dev)
 {
+  ENTER_FUNC();
   return (  // OUT
       AUDIO_DEVICE_OUT_EARPIECE | AUDIO_DEVICE_OUT_SPEAKER |
       AUDIO_DEVICE_OUT_WIRED_HEADSET | AUDIO_DEVICE_OUT_WIRED_HEADPHONE |
@@ -3731,6 +3864,7 @@ static uint32_t mrvl_hw_dev_get_supported_devices(
 
 static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
                             hw_device_t **device) {
+  ENTER_FUNC();
   struct mrvl_audio_device *madev = NULL;
   int ap_mode = 0;
   int mDev = 0;
