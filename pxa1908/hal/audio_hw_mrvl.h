@@ -34,7 +34,7 @@ enum bt_headset_type {
 };
 
 enum loopback_type {
-  HARDWARE_LOOPBACK,
+  HW_LOOPBACK,
   CP_LOOPBACK,
   APP_LOOPBACK,
 };
@@ -105,6 +105,18 @@ enum headset_type {
 
 // minimum sleep time in out_write when write threshold is not reached
 #define MIN_WRITE_SLEEP_US 5000
+
+#ifndef AUDIO_PARAMETER_KEY_HFP_ENABLE
+#define AUDIO_PARAMETER_KEY_HFP_ENABLE            "hfp_enable"
+#endif
+
+#ifndef AUDIO_PARAMETER_KEY_HFP_SET_SAMPLING_RATE 
+#define AUDIO_PARAMETER_KEY_HFP_SET_SAMPLING_RATE "hfp_set_sampling_rate"
+#endif
+
+#ifndef AUDIO_PARAMETER_KEY_HFP_VOLUME
+#define AUDIO_PARAMETER_KEY_HFP_VOLUME            "hfp_volume"
+#endif
 
 #ifndef WITH_ADVANCED_AUDIO
  #define AUDIO_PARAMETER_STREAM_HW_VOLUME "hardware_volume"  // uint32_t
@@ -218,8 +230,8 @@ struct mrvl_path_status {
 
 struct mrvl_audio_effect
 {
-    effect_entry_t *effect;
-    listnode link;
+    struct effect_entry_t *effect;
+    struct listnode link;
 };
 
 struct mrvl_stream_out {

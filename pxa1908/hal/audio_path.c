@@ -331,7 +331,7 @@ static void handle_ctl_info(char *path_name, int method, int val)
       break;
     case METHOD_SWITCH:
       ALOGI("Switch from old path %s to path %s, value is 0x%08x",
-            NULL, path_name, val);
+            "", path_name, val);
       ret = ACMAudioPathSwitch(NULL, path_name, val);
       break;
     default:

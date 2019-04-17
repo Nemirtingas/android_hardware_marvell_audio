@@ -99,6 +99,14 @@ static struct pcm_config pcm_config_fm = {
     .period_size = FM_OUTPUT_PERIOD_SIZE,
     .period_count = FM_OUTPUT_PERIOD_COUNT,
 };
+// used for hfp
+static struct pcm_config pcm_config_hfp = {
+    .channels = 2,
+    .rate = SAMPLE_RATE_HFP_NB,
+    .format = PCM_FORMAT_S16_LE,
+    .period_size = HFP_OUTPUT_PERIOD_SIZE,
+    .period_count = HFP_OUTPUT_PERIOD_COUNT,
+};
 // used for default input
 static struct pcm_config pcm_config_input = {
     .channels = 2,
@@ -1426,7 +1434,7 @@ static void set_fm_parameters(struct mrvl_audio_device *madev,
 }
 */
 
-static void set_fm_parameters(struct mrvl_audio_device *madev, struct str_parm *param)
+static void set_fm_parameters(struct mrvl_audio_device *madev, struct str_parms *param)
 {
     int32_t param_int;
     char buffer[92];
@@ -1463,7 +1471,7 @@ static void set_fm_parameters(struct mrvl_audio_device *madev, struct str_parm *
                         ALOGE("%s open tiny alsa device error", __FUNCTION__);
                         goto exit_set_fm;
                     }
-                    pcm_start();
+                    pcm_start(madev->fm_handle);
                 }
                 select_interface(madev, ID_IPATH_RX_FM, true);
                 madev->in_fm = true;
@@ -1516,7 +1524,7 @@ exit_set_fm:
     pthread_mutex_unlock(&madev->lock);
 }
 
-static void set_hfp_parameters(struct str_parms *param, struct mrvl_audio_device *madev)
+static void set_hfp_parameters(struct mrvl_audio_device *madev, struct str_parms *param)
 {
     int32_t param_int;
     char buffer[32];
@@ -1528,9 +1536,9 @@ static void set_hfp_parameters(struct str_parms *param, struct mrvl_audio_device
         ALOGI("%s: set hfp volume %d", __FUNCTION__, param_int);
         madev->hfp_volume = param_int;
         set_hw_volume(V_MODE_HFP, convert2_hwdev(madev, AUDIO_DEVICE_OUT_SPEAKER), 100 * param_int / 15);
-        str_parms_del(param, AUDIO_PARAMETER_HFP_VOLUME);
+        str_parms_del(param, AUDIO_PARAMETER_KEY_HFP_VOLUME);
     }
-    if( str_parms_get_str(param, AUDIO_PARAMETER_KEY_HFP_ENABLE, &buffer) >= 0 )
+    if( str_parms_get_str(param, AUDIO_PARAMETER_KEY_HFP_ENABLE, buffer, sizeof(buffer)) >= 0 )
     {
         if( !strcmp(buffer, "true") )
         {
@@ -1573,8 +1581,8 @@ static void set_hfp_parameters(struct str_parms *param, struct mrvl_audio_device
             if( madev->in_hfp )
             {
                 ALOGI("%s: require to disable the HFP path", __FUNCTION__);
-                select_interface(madev, ID_IDPATH_RX_HFP, false);
-                select_interface(madev, ID_IDPATH_TX_HFP, false);
+                select_interface(madev, ID_IPATH_RX_HFP, false);
+                select_interface(madev, ID_IPATH_TX_HFP, false);
                 madev->in_hfp = false;
                 if( madev->hfp_out_handle )
                 {
@@ -1590,7 +1598,7 @@ static void set_hfp_parameters(struct str_parms *param, struct mrvl_audio_device
                 }
             }
         }
-        str_parms_del(param, AUDIO_PARAMETER_HFP_ENABLE);
+        str_parms_del(param, AUDIO_PARAMETER_KEY_HFP_ENABLE);
     }
 
 exit_set_hfp:
@@ -1783,18 +1791,16 @@ static void enable_loopback(struct mrvl_audio_device *madev, int loopback_type)
     set_voice_call_volume(madev, loopback_volume, 0);
     //set_hw_volume(V_MODE_VC, convert2_hwdev(madev, madev->out_device),
     //              (unsigned char)(loopback_volume * 100));
-    /vcm_mute_all(false, get_cpmute_rampup_level());
+    //vcm_mute_all(false, get_cpmute_rampup_level());
 #endif
 
   }
-  else if (loopback_type == HARDWARE_LOOPBACK)
+  else if (loopback_type == APP_LOOPBACK)
   {
-    //select_interface(madev, ID_IPATH_RX_VC_ST, true);
-    //select_interface(madev, ID_IPATH_TX_VC, true);
     select_interface(madev, ID_IPATH_RX_HIFI_LL, true);
     select_interface(madev, ID_IPATH_TX_HIFI, true);
   }
-  else if (loopback_type == SMT_LOOPBACK)
+  else if (loopback_type == HW_LOOPBACK)
   {
     select_interface(madev, ID_IPATH_RX_VC_ST, true);
     select_interface(madev, ID_IPATH_TX_VC, true);
@@ -1820,7 +1826,7 @@ static void disable_loopback(struct mrvl_audio_device *madev, int loopback_type)
         madev->out_device, madev->in_device, loopback_type);
 
   // configure VC interface, both Playback and Record
-  if (madev->loopback_param.type == CP_LOOPBACK) {
+  if (loopback_type == CP_LOOPBACK) {
     select_interface(madev, ID_IPATH_RX_VC, false);
     select_interface(madev, ID_IPATH_TX_VC, false);
 
@@ -1832,10 +1838,10 @@ static void disable_loopback(struct mrvl_audio_device *madev, int loopback_type)
     vcm_mute_all(false, get_cpmute_rampup_level());
 #endif
 
-  } else if (madev->loopback_param.type == HARDWARE_LOOPBACK) {
+  } else if (loopback_type == HW_LOOPBACK) {
     select_interface(madev, ID_IPATH_RX_VC_ST, false);
     select_interface(madev, ID_IPATH_TX_VC, false);
-  } else if (madev->loopback_param.type == APP_LOOPBACK) {
+  } else if (loopback_type == APP_LOOPBACK) {
     select_interface(madev, ID_IPATH_RX_HIFI_LL, false);
     select_interface(madev, ID_IPATH_TX_HIFI, false);
   } else {
@@ -1851,22 +1857,6 @@ static void disable_loopback(struct mrvl_audio_device *madev, int loopback_type)
     pcm_stop(madev->phone_ul_handle);
     pcm_close(madev->phone_ul_handle);
     madev->phone_ul_handle = NULL;
-  }
-}
-
-static void select_loopback(struct mrvl_audio_device *madev, bool value) {
-  ALOGD("loopback_out_device:0x%x, loopback_in_device:0x%x",
-        madev->loopback_param.out_device, madev->loopback_param.in_device);
-  if (value) {
-    madev->out_device = madev->loopback_param.out_device;
-    madev->in_device = madev->loopback_param.in_device;
-    madev->loopback_param.on = true;
-    enable_loopback(madev);
-  } else {
-    madev->out_device = AUDIO_DEVICE_OUT_SPEAKER;
-    madev->in_device = AUDIO_DEVICE_IN_BUILTIN_MIC;
-    madev->loopback_param.on = false;
-    disable_loopback(madev);
   }
 }
 
@@ -2983,7 +2973,7 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
       if( !strcmp(value, "pcm") )
       {
         madev->factory_test_type = 1;
-        loopback_param = SMT_LOOPBACK;
+        loopback_param = HW_LOOPBACK;
       }
       else if( !strcmp(value, "packet") )
       {
@@ -2993,7 +2983,7 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
       else if( !strcmp(value, "codec") )
       {
         madev->factory_test_type = 3;
-        loopback_param = SMT_LOOPBACK;
+        loopback_param = HW_LOOPBACK;
       }
       else if( !strcmp(value, "realtime") )
       {
@@ -3016,7 +3006,7 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
               ALOGI("%s: set factory_return_out_device %x", __FUNCTION__, madev->factory_return_out_device);
           }
       }
-      else if( !strcmp(value, AUDIO_PARAMETE_VALUE_OFF) )
+      else if( !strcmp(value, AUDIO_PARAMETER_VALUE_OFF) )
       {
           if( madev->factory_test_type )
           {
@@ -3086,18 +3076,18 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
   key = AUDIO_PARAMETER_KEY_FACTORY_TEST_ROUTE;
   if( (ret = str_parms_get_str(param, key, value, sizeof(value))) >= 0 )
   {
-    ALOGI("%s: factory_test_route = %s", __FUNCTION__ value);
+    ALOGI("%s: factory_test_route = %s", __FUNCTION__, value);
     if( !madev->factory_return_out_device )
     {
         madev->factory_return_out_device = madev->out_device;
-        ALOGI("%s: set factory_return_out_device %x", madev->out_device);
+        ALOGI("%s: set factory_return_out_device %x", __FUNCTION__, madev->out_device);
     }
     if( !strcmp(value, "off") )
     {
         madev->out_device = madev->factory_return_out_device;
         madev->factory_return_out_device = AUDIO_DEVICE_NONE;
         madev->factory_test_route = 0;
-        madev->field_224 = 0;
+        madev->factory_out_device = 0;
         ALOGI("%s: set factory_return_out_device %x", __FUNCTION__, madev->factory_return_out_device);
         select_output_device(madev);
     }
@@ -3126,7 +3116,7 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
                 madev->out_device = AUDIO_DEVICE_OUT_WIRED_HEADSET;
                 route = 3;
             }
-            madev->factory_out_device =  madev_out_device;
+            madev->factory_out_device =  madev->out_device;
             select_output_device(madev);
             madev->factory_test_route = route;
         }
@@ -3186,11 +3176,11 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
   }
 
   key = AUDIO_PARAMETER_KEY_SOLUTION;
-  if( (ret = str_parms_get_int(param, key, &intValue)) >= 0 )
+  if( (ret = str_parms_get_int(param, key, &intvalue)) >= 0 )
   {
 #ifdef SAMSUNG_AUDIO
-      setPostProcess(0, intValue);
-      setPostProcess(1, intValue);
+      setPostProcess(0, intvalue);
+      setPostProcess(1, intvalue);
 #endif
       str_parms_del(param, key);
   }
@@ -3809,7 +3799,7 @@ static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
   madev->factory_test_route = 0;
   madev->factory_out_device = AUDIO_DEVICE_NONE;
   madev->factory_test_mic_check = 0;
-  madev->return_out_device = 0;
+  madev->factory_return_out_device = 0;
   madev->out_loopback_device = AUDIO_DEVICE_NONE;
   madev->in_loopback_device = AUDIO_DEVICE_NONE;
   madev->factory_test_type = 0;

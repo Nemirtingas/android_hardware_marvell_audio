@@ -46,7 +46,8 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_MODULE:= audio.primary.mrvl
 LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS += -Wno-unused-parameter
+LOCAL_CFLAGS += -Wall -Werror -Wno-parentheses
+#LOCAL_CFLAGS += -Wno-unused-parameter
 
 ifeq ($(BOARD_WITH_SAMSUNG_POSTPROCESS_AUDIO),true)
    LOCAL_CFLAGS += -DSAMSUNG_AUDIO
