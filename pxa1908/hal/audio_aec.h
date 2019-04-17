@@ -28,6 +28,7 @@ int effect_set_profile();
 void out_load_effect(struct audio_stream *out, effect_uuid_t *effect, uint32_t profile);
 int out_release_effect();
 
+int in_add_audio_effect(struct audio_stream *in, effect_entry_t *effect );
 int in_pre_process();
 int in_load_effect();
 int in_release_effect(struct audio_stream * in, effect_uuid_t *effect);

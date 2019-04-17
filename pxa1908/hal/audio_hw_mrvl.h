@@ -34,8 +34,8 @@ enum bt_headset_type {
 };
 
 enum loopback_type {
-  CP_LOOPBACK = 1,
   HARDWARE_LOOPBACK,
+  CP_LOOPBACK,
   APP_LOOPBACK,
 };
 
@@ -123,9 +123,11 @@ enum headset_type {
  #define AUDIO_MODE_IN_VT_CALL AUDIO_MODE_CURRENT
 #else
  #define AUDIO_PARAMETER_STREAM_HW_VOLUME "hardware_volume"  // uint32_t
- #define AUDIO_PARAMETER_FM_STATUS "FM_STATUS"
- #define AUDIO_PARAMETER_FM_DEVICE "FM_DEVICE"
- #define AUDIO_PARAMETER_FM_VOLUME "FM_VOLUME"
+ #define AUDIO_PARAMETER_FM_STATUS     "FM_STATUS"
+ #define AUDIO_PARAMETER_FM_DEVICE     "FM_DEVICE"
+ #define AUDIO_PARAMETER_FM_VOLUME     "FMRadioVol"
+ #define AUDIO_PARAMETER_FM_MODE       "fm_mode"
+ #define AUDIO_PARAMETER_FM_RADIO_MUTE "fm_radio_mute"
  typedef enum { FM_DISABLE = 0, FM_ENABLE, FM_SETVOLUME } fm_status;
  
 // #define AUDIO_STREAM_FM AUDIO_STREAM_DEFAULT
@@ -136,6 +138,8 @@ enum headset_type {
  #define AUDIO_DEVICE_IN_FMRADIO (AUDIO_DEVICE_BIT_IN|0x800000)
  #define AUDIO_DEVICE_IN_VT_MIC (AUDIO_DEVICE_BIT_IN|0x1000000)
  #define AUDIO_MODE_IN_VT_CALL 9
+
+ #define AUDIO_PARAMETER_REALCALL "realcall"
 #endif
 
 #define VCM_EXTRA_VOL       0x00000001
@@ -150,8 +154,8 @@ enum headset_type {
 /* TTY mode selection */
 enum tty_modes { TTY_MODE_OFF = 0, TTY_MODE_FULL, TTY_MODE_HCO, TTY_MODE_VCO };
 
-static char *const EXTRA_VOL = "Extra_volume";
-static char *const MUTE_ALL_RX = "mute_voice_Rx";
+static char *const EXTRA_VOL = "extraVolume";
+static char *const MUTE_ALL_RX = "allsoundmute";
 static char *const VOICE_USER_EQ = "dha";
 static char *const MICROPHONE_MODE = "microphone_mode";
 static char *const LOOPBACK = "Loopback";
@@ -159,6 +163,12 @@ static char *const LOOPBACK_INPUT_DEVICE = "input_dev";
 static char *const LOOPBACK_OUTPUT_DEVICE = "output_dev";
 static char *const LOOPBACK_HEADSET_FLAG = "hs_flag";
 static char *const LOOPBACK_MODE_SETTTING = "loopback_mode";
+
+#define AUDIO_PARAMETER_KEY_SOLUTION              "solution"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_TYPE     "factory_test_type"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_PATH     "factory_test_path"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_LOOPBACK "factory_test_loopback"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_ROUTE    "factory_test_route"
 
 enum output_type {
   OUTPUT_LOW_LATENCY,  // low latency output stream
@@ -206,6 +216,12 @@ struct mrvl_path_status {
   struct listnode in_virtual_path;
 };
 
+struct mrvl_audio_effect
+{
+    effect_entry_t *effect;
+    listnode link;
+};
+
 struct mrvl_stream_out {
   struct audio_stream_out stream;
   struct mrvl_audio_device *dev;
@@ -221,6 +237,7 @@ struct mrvl_stream_out {
   bool standby;
   int write_threshold;
   bool use_long_periods;
+  // mrvl_audio_effect list
   struct listnode effect_interfaces;
   audio_io_handle_t io_handle;
 
@@ -242,6 +259,7 @@ struct mrvl_stream_in {
   unsigned int period_size;  // frame counts
   unsigned int period_count;  // counts of period
   bool standby;
+  // mrvl_audio_effect list
   struct listnode effect_interfaces;
   struct echo_reference_buffer ref_buffer;
   audio_io_handle_t io_handle;
@@ -251,7 +269,8 @@ struct mrvl_stream_in {
 #endif
 };
 
-struct mrvl_loopback_param {
+struct mrvl_loopback_param
+{
   uint32_t headset_flag;  // record headset type of  mono and stereo
   uint32_t in_device;
   uint32_t out_device;
@@ -267,13 +286,14 @@ struct mrvl_audio_device {
   uint32_t out_device;
   uint32_t in_device;
   uint32_t fm_device;
-  struct mrvl_loopback_param loopback_param;
   bool mic_mute;
   int tty_mode;
   pthread_mutex_t lock;
   float voice_volume;
   int fm_volume;
   int hfp_volume;
+  int fm_mute;
+  int realcall;
   audio_mode_t mode;
   char plug_type[256];
   bool in_call;  // record voice call status
@@ -292,6 +312,13 @@ struct mrvl_audio_device {
   struct pcm *hfp_out_handle;
   struct pcm *hfp_in_handle;
   struct listnode audio_patches;
+  int factory_test_type;
+  int in_loopback_device;
+  int out_loopback_device;
+  int factory_test_route;
+  int factory_out_device;
+  int factory_return_out_device;
+  bool factory_test_mic_check;
 };
 
 #endif /* __AUDIO_HW_MRVL_H__ */
