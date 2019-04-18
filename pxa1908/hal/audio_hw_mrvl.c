@@ -210,11 +210,15 @@ unsigned char get_cpmute_rampdown_level()
   ENTER_FUNC();
   char prop_value[PROPERTY_VALUE_MAX];
   unsigned char level = 0;
-  if (property_get("audio.cpmute.rampdown.level", prop_value, "0")) {
+  if (property_get("audio.cpmute.rampdown.level", prop_value, "0"))
+  {
     int value = atoi(prop_value);
-    if (value >= 0 && value < 3) {
+    if (value >= 0 && value < 3)
+    {
       level = (unsigned char)value;
-    } else {
+    }
+    else
+    {
       ALOGW("%s: Invalid ramp down level %d, current only support 0 ~ 2",
             __FUNCTION__, value);
     }
@@ -277,21 +281,26 @@ void get_out_vrtl_mode(struct mrvl_audio_device *madev,
   virtual_mode_t highest_mode = V_MODE_INVALID;
   // the priorities of modes are sorted by descending order in array
   // priority_modes[]
-  for (i = 0; i < (int)NUM_VTRL_MODES_OUTPUT; i++) {
-    if (mrvl_path_manager.itf_state[priority_modes_output[i].path_interface]) {
+  for (i = 0; i < (int)NUM_VTRL_MODES_OUTPUT; i++)
+  {
+    if (mrvl_path_manager.itf_state[priority_modes_output[i].path_interface])
+    {
       // VOIP/VT and LowLatency have a common interface, but audio mode is
       // different
-      if (priority_modes_output[i].path_interface == ID_IPATH_RX_HIFI_LL) {
+      if (priority_modes_output[i].path_interface == ID_IPATH_RX_HIFI_LL)
+      {
         if (((priority_modes_output[i].audio_mode ==
               AUDIO_MODE_IN_COMMUNICATION) ||
              (priority_modes_output[i].audio_mode == AUDIO_MODE_IN_VT_CALL)) &&
-            (priority_modes_output[i].audio_mode != madev->mode)) {
+            (priority_modes_output[i].audio_mode != madev->mode))
+        {
           continue;
         }
       }
       // LowLatency could not exist with VOIP/VT simultaneously
       if ((priority_modes_output[i].v_mode == V_MODE_HIFI_LL) &&
-          ((highest_mode == V_MODE_VOIP) || (highest_mode == V_MODE_VT))) {
+          ((highest_mode == V_MODE_VOIP) ))
+      {
         continue;
       }
       // first mode we get from the array is the highest mode, the left are
@@ -577,13 +586,12 @@ int add_vrtl_path(struct listnode *path_node, struct virtual_mode *vtrl_mode,
 unsigned int get_input_dev(unsigned int out_device)
 {
   ENTER_FUNC();
-  unsigned int input_dev = AUDIO_DEVICE_IN_BUILTIN_MIC;
 
   out_device -= 2;
   if( out_device <= 30 )
-    input_dev = input_devices[out_device];
+    return input_devices[out_device];
 
-  return input_dev;
+  return AUDIO_DEVICE_IN_BUILTIN_MIC;
 }
 
 int get_speaker_dev()
