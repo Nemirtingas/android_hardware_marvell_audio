@@ -38,7 +38,7 @@
 #define AUDIOOUTPCM_DEV "/dev/audiostub_pcm"
 #define AUDIOINPCM_DEV  "/dev/audiostub_pcm"
 
-static int fdaudiostub = -1;
+static int fdaudiostub_ctl = -1;
 static int fdoutaudiostub_pcm = -1;
 static int fdinaudiostub_pcm = -1;
 
@@ -52,7 +52,7 @@ static struct pcm_record_ctlmsg in_recordctl;
 
 static int VCMAudioIoctl( unsigned int request, void *param )
 {
-    if( ioctl(fdaudiostub, request, param) < 0 )
+    if( ioctl(fdaudiostub_ctl, request, param) < 0 )
     {
         ALOGE("audio_stub ioctl error: %s", strerror(errno));
         return EACCES;
@@ -63,7 +63,7 @@ static int VCMAudioIoctl( unsigned int request, void *param )
 
 int VCMInit()
 {
-    if( fdaudiostub >= 0 || (fdaudiostub = open(AUDIOCTL_DEV, O_RDONLY)) >= 0 )
+    if( fdaudiostub_ctl >= 0 || (fdaudiostub_ctl = open(AUDIOCTL_DEV, O_RDONLY)) >= 0 )
         return 1;
 
     ALOGE("failed to open %s:%s", AUDIOCTL_DEV, strerror(errno));
@@ -73,10 +73,10 @@ int VCMInit()
 
 void VCMDeinit()
 {
-    if( fdaudiostub >= 0 )
+    if( fdaudiostub_ctl >= 0 )
     {
-        close(fdaudiostub);
-        fdaudiostub = -1;
+        close(fdaudiostub_ctl);
+        fdaudiostub_ctl = -1;
     }
 }
 
