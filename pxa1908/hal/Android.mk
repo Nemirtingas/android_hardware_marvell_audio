@@ -55,7 +55,9 @@ endif
 
 ifeq ($(BOARD_WITH_MRVL_AEC_AUDIO),true)
    LOCAL_CFLAGS += -DMRVL_AEC
+   LOCAL_SHARED_LIBRARIES += libeffects
    LOCAL_SRC_FILES += audio_aec.c
+   LOCAL_C_INCLUDES += frameworks/av/media/libeffects/factory/
 endif
 
 ifeq ($(BOARD_WITH_TELEPHONY_AUDIO),true)

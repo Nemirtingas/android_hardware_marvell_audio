@@ -220,7 +220,6 @@ struct virtual_path {
 struct mrvl_path_status {
   bool itf_state[ID_IPATH_TX_MAX + 1];  // output&input interface state
   bool mute_all_rx;   // all Rx sound should be muted
-//  uint32_t mic_mode;  // mic mode in marvell settings
   uint32_t active_out_device;
   uint32_t active_in_device;
   uint32_t enabled_in_hwdev;
@@ -228,11 +227,13 @@ struct mrvl_path_status {
   struct listnode in_virtual_path;
 };
 
+#ifdef MRVL_AEC
 struct mrvl_audio_effect
 {
-    struct effect_entry_t *effect;
+    effect_handle_t effect;
     struct listnode link;
 };
+#endif
 
 struct mrvl_stream_out {
   struct audio_stream_out stream;

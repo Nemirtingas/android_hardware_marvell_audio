@@ -2,6 +2,7 @@
 #define __INCLUDED_AEC__
 
 #include "audio_hw_mrvl.h"
+#include <EffectsFactory.h>
 #include <hardware/audio_effect.h>
 
 
@@ -20,6 +21,7 @@ static effect_uuid_t fx_iid_voiprx = {
 
 void create_echo_ref(struct mrvl_stream_in *in, struct mrvl_stream_out *out);
 void remove_echo_ref(struct mrvl_stream_in *in, struct mrvl_stream_out *out);
+
 int echo_ref_rx_write();
 
 int effect_rx_process();

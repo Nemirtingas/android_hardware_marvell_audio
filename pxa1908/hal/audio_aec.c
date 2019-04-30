@@ -1,10 +1,9 @@
 #include "audio_aec.h"
 
-#define LOG_TAG "audio_hw_mrvl"
-#define LOG_NDEBUG 0
-
 #include <stdlib.h>
 #include <cutils/log.h>
+
+extern int EffectRelease(effect_handle_t handle);
 
 void create_echo_ref(struct mrvl_stream_in *in, struct mrvl_stream_out *out)
 {
@@ -89,7 +88,7 @@ int effect_set_profile()
     return 0;
 }
 
-struct mrvl_audio_effect* out_get_effect(struct audio_stream *out, struct effect_uuid_t *effect)
+struct mrvl_audio_effect* out_get_effect(struct audio_stream *out, effect_uuid_t *effect)
 {
     struct mrvl_stream_out *maout = (struct mrvl_stream_out*)out;
     struct listnode *node;
@@ -101,8 +100,8 @@ struct mrvl_audio_effect* out_get_effect(struct audio_stream *out, struct effect
     list_for_each(node, &maout->effect_interfaces)
     {
         struct mrvl_audio_effect *tmp_item = node_to_item(node, struct mrvl_audio_effect, link);
-        struct lib_entry_t *tmp_lib = (struct lib_entry_t*)tmp_item->effect->itfe;
-        struct effect_interface_t *tmp_itfe = (struct effect_interface_t*)tmp_lib->desc;
+        lib_entry_t *tmp_lib = (lib_entry_t*)tmp_item->effect->itfe;
+        struct effect_interface_s *tmp_itfe = (struct effect_interface_s*)tmp_lib->desc;
         tmp_itfe->get_descriptor(effect, &desc);
         //if( !memcmp(effect, &desc.type, sizeof(effect_uuid_t)) )
         if( !memcmp(effect, &desc.uuid, sizeof(effect_uuid_t)) )
@@ -118,9 +117,8 @@ struct mrvl_audio_effect* out_get_effect(struct audio_stream *out, struct effect
 }
 
 
-void out_load_effect(struct audio_stream *out, effect_uuid_t *effect, uint32_t profile);
+void out_load_effect(struct audio_stream *out, effect_uuid_t *effect, uint32_t profile)
 {
-    return 0;
 }
 
 int out_release_effect()
@@ -178,61 +176,59 @@ int in_load_effect()
     return 0;
 }
 
-struct mrvl_audio_effect* in_get_effect(struct audio_stream *in, struct effect_uuid_t *effect)
+struct mrvl_audio_effect* in_get_effect(struct audio_stream *in, effect_uuid_t *effect)
 {
-    struct mrvl_stream_in *main = (struct mrvl_stream_in*)in;
+    struct mrvl_stream_in *ma_in = (struct mrvl_stream_in*)in;
     struct listnode *node;
     effect_descriptor_t desc;
 
-    pthread_mutex_lock(&main->lock);
+    pthread_mutex_lock(&ma_in->lock);
 
     /*
-    list_for_each(node, &main->effect_interfaces)
+    list_for_each(node, &ma_in->effect_interfaces)
     {
         struct mrvl_audio_effect *tmp_item = node_to_item(node, struct mrvl_audio_effect, link);
-        struct lib_entry_t *tmp_lib = (struct lib_entry_t*)tmp_item->effect->itfe;
-        struct effect_interface_t *tmp_itfe = (struct effect_interface_t*)tmp_lib->desc;
+        lib_entry_t *tmp_lib = (lib_entry_t*)(((effect_entry_t*)tmp_item->effect)->itfe);
+        struct effect_interface_s *tmp_itfe = (struct effect_interface_s*)(tmp_lib->desc);
         tmp_itfe->get_descriptor(effect, &desc);
         //if( !memcmp(effect, &desc.type, sizeof(effect_uuid_t)) )
         if( !memcmp(effect, &desc.uuid, sizeof(effect_uuid_t)) )
         {
-            pthread_mutex_unlock(&main->lock);
+            pthread_mutex_unlock(&ma_in->lock);
             return tmp_item;
         }
     }
     */
 
-    pthread_mutex_unlock(&main->lock);
+    pthread_mutex_unlock(&ma_in->lock);
     return 0;
 }
 
 int in_remove_audio_effect(struct audio_stream *in, struct mrvl_audio_effect *effect)
 {
-    struct mrvl_stream_in *main = (struct mrvl_stream_in*)in;
+    struct mrvl_stream_in *ma_in = (struct mrvl_stream_in*)in;
     struct listnode *plist;
     struct listnode *tmp_node;
     struct mrvl_audio_effect *tmp_effect;
 
-    pthread_mutex_lock(&main->lock);
+    pthread_mutex_lock(&ma_in->lock);
 
-    /*
-    list_for_each_safe(plist, tmp_node, &main->effect_interfaces)
+    list_for_each_safe(plist, tmp_node, &ma_in->effect_interfaces)
     {
         tmp_effect = node_to_item(plist, struct mrvl_audio_effect, link);
-        if( tmp_effect != NULL && tmp_effect->effect == effect )
+        if( tmp_effect != NULL && tmp_effect->effect == effect->effect )
         {
             list_remove(&tmp_effect->link);
             free(tmp_effect);
         }
     }
-    */
 
-    pthread_mutex_unlock(&main->lock);
+    pthread_mutex_unlock(&ma_in->lock);
 
     return 0;
 }
 
-int in_release_effect(struct audio_stream * in, struct effect_uuid_t *effect)
+int in_release_effect(struct audio_stream * in, effect_uuid_t *effect)
 {
     int res = 0;    
     struct mrvl_audio_effect *maeffect;
@@ -242,7 +238,7 @@ int in_release_effect(struct audio_stream * in, struct effect_uuid_t *effect)
     {
         ALOGI("%s: release effect for input stream %p", __FUNCTION__, in);
         in_remove_audio_effect(in, maeffect);
-        res = EffectRelease(&maeffect->effect);
+        res = EffectRelease(maeffect->effect);
     }
 
     return res;
