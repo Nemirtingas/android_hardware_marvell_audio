@@ -73,9 +73,23 @@ void remove_echo_ref(struct mrvl_stream_in *in, struct mrvl_stream_out *out)
     pthread_mutex_unlock(&out->lock);
 }
 
-int echo_ref_rx_write()
+void echo_ref_rx_write(mrvl_stream_out *out, void *buffer, size_t buff_size)
 {
-    return 0;
+    echo_reference_buffer erbuff;
+    unsigned int avail = 0;
+    mrvl_audio_device *madev = out->dev;
+
+    if( madev->echo_reference )
+    {
+        erbuff.raw = buffer;
+        // count frames (PCM_16bits)
+        erbuff.frame_count = (buff_size / 2) / popcount(out->channel_mask);
+        pcm_get_htimestamp(out->handle, &avail, &erbuff.time_stamp);
+        erbuff.delay_ns = 1000000000
+                          * (out->period_count * out->period_size - avail)
+                          / out->sample_rate;
+        madev->echo_reference->write(madev->echo_reference, &erbuff);
+    }
 }
 
 int effect_rx_process()
