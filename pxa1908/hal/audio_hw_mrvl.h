@@ -19,7 +19,7 @@
 
 #include <hardware/audio.h>
 #include <system/audio.h>
-#include <echo_reference.h>
+#include <audio_utils/echo_reference.h>
 #include <cutils/list.h>
 #include <cutils/atomic.h>
 #include <pthread.h>

@@ -29,8 +29,9 @@ LOCAL_C_INCLUDES += \
     external/icu/icu4c/source/common \
     external/tinyalsa/include/ \
     system/media/audio/include \
-    system/media/audio_utils/include/audio_utils \
-    system/media/audio_effects/include/audio_effects \
+    $(call include-path-for, audio-utils) \
+    $(call include-path-for, audio-route) \
+    $(call include-path-for, audio-effects) \
     frameworks/av/include
 
 LOCAL_SHARED_LIBRARIES := \
@@ -48,6 +49,7 @@ LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS += -Wall -Werror -Wno-parentheses
 #LOCAL_CFLAGS += -Wno-unused-parameter
+LOCAL_CFLAGS += -DIGNORE_SILENCE_SIZE
 
 ifeq ($(BOARD_WITH_SAMSUNG_POSTPROCESS_AUDIO),true)
    LOCAL_CFLAGS += -DSAMSUNG_AUDIO
