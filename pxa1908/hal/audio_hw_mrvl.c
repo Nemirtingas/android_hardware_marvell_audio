@@ -4066,12 +4066,12 @@ static struct hw_module_methods_t hal_module_methods = {
 struct audio_module HAL_MODULE_INFO_SYM = {
     .common =
         {
-         .tag = HARDWARE_MODULE_TAG,
-         .version_major = 1,
-         .version_minor = 0,
-         .id = AUDIO_HARDWARE_MODULE_ID,
-         .name = "Marvll audio HW HAL",
-         .author = "Marvell APSE/SE1-Audio",
-         .methods = &hal_module_methods,
+            .tag = HARDWARE_MODULE_TAG,
+            .module_api_version = AUDIO_MODULE_API_VERSION_0_1,
+            .hal_api_version = HARDWARE_HAL_API_VERSION,
+            .id = AUDIO_HARDWARE_MODULE_ID,
+            .name = "Marvll audio HW HAL",
+            .author = "Nemirtingas (Maxime P) & Marvell APSE/SE1-Audio",
+            .methods = &hal_module_methods,
         },
 };
