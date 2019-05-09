@@ -58,91 +58,6 @@
 #define ENTER_FUNC()
 #endif
 
-/////////////////////////////////////////
-static void* dlhandle = NULL;
-static int (*stock_mrvl_hw_dev_open)(const hw_module_t *module, const char *name, hw_device_t **device);
-
-static uint32_t       (*stock_in_get_sample_rate)(const struct audio_stream*);
-static int            (*stock_in_set_sample_rate)(struct audio_stream*, uint32_t);
-
-static size_t         (*stock_in_get_buffer_size)(const struct audio_stream*);
-
-static uint32_t       (*stock_in_get_channels)(const struct audio_stream*);
-
-static audio_format_t (*stock_in_get_format)(const struct audio_stream*);
-static int            (*stock_in_set_format)(struct audio_stream*, audio_format_t);
-
-static int            (*stock_in_dump)(const struct audio_stream*, int);
-
-static int            (*stock_in_set_parameters)(struct audio_stream *, const char *);
-static char *         (*stock_in_get_parameters)(const struct audio_stream *, const char *);
-
-static ssize_t        (*stock_in_read_primary)(struct audio_stream_in *, void*, size_t);
-static int            (*stock_in_standby_primary)(struct audio_stream *);
-
-static void (*stock_out_load_effect)(struct audio_stream *, effect_uuid_t*, int);
-static void (*stock_out_release_effect)(struct audio_stream *, effect_uuid_t*);
-
-static void (*stock_effect_set_profile)(int, struct mrvl_audio_device*);
-static void (*stock_effect_rx_process)(const struct mrvl_stream_out*,const void*);
-static void (*stock_echo_ref_rx_write)(const struct mrvl_stream_out*, const void*, int);
-
-static void (*stock_in_load_effect)(struct audio_stream *, effect_uuid_t*, int, int);
-static void (*stock_in_release_effect)(struct audio_stream *, effect_uuid_t *);
-
-static void (*stock_remove_echo_ref)(struct mrvl_stream_in*, struct mrvl_stream_out*);
-static void (*stock_create_echo_ref)(struct mrvl_stream_in*, struct mrvl_stream_out*);
-
-static void (*stock_in_pre_process)(struct mrvl_stream_in*, void*);
-
-static int (*stock_mrvl_hw_dev_open_input_stream)(struct audio_hw_device *dev,
-                                         audio_io_handle_t handle,
-                                         audio_devices_t devices,
-                                         struct audio_config *config,
-                                         struct audio_stream_in **stream_in,
-                                         audio_input_flags_t flags,
-                                         const char *address,
-                                         audio_source_t source);
-
-#include <dlfcn.h>
-
-#define LOAD_FUNC(ptr, addr, offset) *((int*)&(ptr)) = ((addr) + (offset))
-
-void load_funcs()
-{
-    int offset = 0x475C;
-    dlhandle = dlopen("/system/lib/hw/audio.primary.mrvl.so", RTLD_NOW);
-    offset = (uint32_t)dlsym(dlhandle, "add_vrtl_path")-offset;
-
-    LOAD_FUNC(stock_mrvl_hw_dev_open, 0x3C18, offset);
-    LOAD_FUNC(stock_mrvl_hw_dev_open_input_stream, 0x35AC, offset);
-
-    LOAD_FUNC(stock_in_get_sample_rate, 0x31FC, offset);
-    LOAD_FUNC(stock_in_set_sample_rate, 0x3200, offset);
-    LOAD_FUNC(stock_in_get_buffer_size, 0x3500, offset);
-    LOAD_FUNC(stock_in_get_channels, 0x3204, offset);
-    LOAD_FUNC(stock_in_get_format, 0x3208, offset);
-    LOAD_FUNC(stock_in_set_format, 0x320E, offset);
-    LOAD_FUNC(stock_in_dump, 0x3212, offset);
-    LOAD_FUNC(stock_in_set_parameters, 0x588C, offset);
-    LOAD_FUNC(stock_in_get_parameters, 0x39CC, offset);
-    LOAD_FUNC(stock_in_read_primary, 0x641C, offset);
-    LOAD_FUNC(stock_in_standby_primary, 0x638C, offset);
-
-    LOAD_FUNC(stock_in_pre_process, 0x93BC, offset);
-    LOAD_FUNC(stock_create_echo_ref, 0x91D0, offset);
-    LOAD_FUNC(stock_remove_echo_ref, 0x9328, offset);
-    LOAD_FUNC(stock_in_load_effect, 0x9744, offset);
-    LOAD_FUNC(stock_in_release_effect, 0x98B4, offset);
-    LOAD_FUNC(stock_out_load_effect, 0x95BC, offset);
-    LOAD_FUNC(stock_out_release_effect, 0x9700, offset);
-    LOAD_FUNC(stock_echo_ref_rx_write, 0x9A28, offset);
-    LOAD_FUNC(stock_effect_rx_process, 0x99E8, offset);
-    LOAD_FUNC(stock_effect_set_profile, 0x98F8, offset);
-}
-
-/////////////////////////////////////////
-
 static int loopback_param = 0;
 
 // it should be accessed in protection of madev->lock
@@ -3967,21 +3882,7 @@ static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
 
   if (strcmp(name, AUDIO_HARDWARE_INTERFACE) != 0) return -EINVAL;
 
-  load_funcs();
-  ALOGE("AUDIO_MODULE : %s", strerror(errno));
-  ALOGE("AUDIO_MODULE : %p, %p", dlhandle, stock_mrvl_hw_dev_open);
-  /*
-  if( stock_mrvl_hw_dev_open != NULL )
-  {
-      stock_mrvl_hw_dev_open(module, name, device);
-      madev = (struct mrvl_audio_device*)*device;
-      ALOGE("AUDIO_MODULE: %p - %p", madev->device.open_input_stream, stock_mrvl_hw_dev_open_input_stream);
-  }
-  else
-      */
-  {
-      madev = (struct mrvl_audio_device *)calloc(1, sizeof(struct mrvl_audio_device));
-  }
+  madev = (struct mrvl_audio_device *)calloc(1, sizeof(struct mrvl_audio_device));
   if (!madev) return -ENOMEM;
 
   madev->device.common.tag = HARDWARE_DEVICE_TAG;
