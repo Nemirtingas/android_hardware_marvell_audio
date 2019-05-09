@@ -25,7 +25,6 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_C_INCLUDES += \
     external/libxml2/include \
-    external/expat/lib \
     external/icu/icu4c/source/common \
     external/tinyalsa/include/ \
     system/media/audio/include \
@@ -40,7 +39,6 @@ LOCAL_SHARED_LIBRARIES := \
     libhardware \
     libaudioutils \
     libeffects \
-    libexpat \
     libacm \
     libxml2
 

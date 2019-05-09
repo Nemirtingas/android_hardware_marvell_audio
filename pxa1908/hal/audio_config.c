@@ -22,7 +22,6 @@
 #include <hardware/audio.h>
 #include <system/audio.h>
 #include <cutils/log.h>
-#include <expat.h>
 #include <libxml/tree.h>
 
 #include "acm_api.h"
