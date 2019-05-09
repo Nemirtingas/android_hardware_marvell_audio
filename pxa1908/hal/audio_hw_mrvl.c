@@ -3476,7 +3476,12 @@ static int mrvl_hw_dev_set_voice_volume(struct audio_hw_device *dev,
 
 static int mrvl_hw_dev_set_master_volume(struct audio_hw_device *dev,
                                          float volume) {
-  ENTER_FUNC();
+  return -ENOSYS;
+}
+
+static int mrvl_hw_dev_get_master_volume(struct audio_hw_device *dev __unused,
+                                         float *volume __unused)
+{
   return -ENOSYS;
 }
 
@@ -3988,6 +3993,7 @@ static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
   madev->device.init_check = mrvl_hw_dev_init_check;
   madev->device.set_voice_volume = mrvl_hw_dev_set_voice_volume;
   madev->device.set_master_volume = mrvl_hw_dev_set_master_volume;
+  madev->device.get_master_volume = mrvl_hw_dev_get_master_volume;
   madev->device.set_mode = mrvl_hw_dev_set_mode;
   madev->device.set_mic_mute = mrvl_hw_dev_set_mic_mute;
   madev->device.get_mic_mute = mrvl_hw_dev_get_mic_mute;
