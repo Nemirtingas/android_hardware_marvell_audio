@@ -303,7 +303,7 @@ static const struct {
     {V_MODE_FM, HWDEV_INVALID, 0, PATH_NAME(FMI2SRecordFromFM)},
 };
 
-/*static*/ void handle_ctl_info(char *path_name, int method, int val)
+static void handle_ctl_info(char *path_name, int method, int val)
 {
   ACM_ReturnCode ret = ACM_RC_OK;
   if (path_name == NULL) {
