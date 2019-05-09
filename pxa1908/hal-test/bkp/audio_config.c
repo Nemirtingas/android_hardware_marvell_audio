@@ -22,6 +22,7 @@
 #include <hardware/audio.h>
 #include <system/audio.h>
 #include <cutils/log.h>
+#include <expat.h>
 #include <libxml/tree.h>
 
 #include "acm_api.h"
@@ -97,14 +98,10 @@ unsigned int get_mic_dev(virtual_mode_t v_mode, unsigned int android_dev)
       struct app_cfg_t *app_cfg = droiddev_cfg->app_cfg;
       while (app_cfg)
       {
-        if (app_cfg->v_mode == v_mode)
-        {
+        if (app_cfg->v_mode == v_mode) {
           ALOGD("%s: find matched dev 0x%x", __FUNCTION__, app_cfg->device);
           return app_cfg->device;
-        }
-
-        if (app_cfg->v_mode == V_MODE_DEF)
-        {
+        } else if (app_cfg->v_mode == V_MODE_DEF) {
           default_dev = app_cfg->device;
         }
         app_cfg = app_cfg->next;
@@ -129,8 +126,7 @@ unsigned int get_mic_hw_flag(unsigned int hw_dev)
   struct board_dev_cfg_t *dev_cfg = mrvl_platform_cfg->board_dev_cfg;
 
   // for TTY, use the equivalent device
-  switch (hw_dev)
-  {
+  switch (hw_dev) {
     case HWDEV_IN_TTY:
       hw_dev = HWDEV_HSMIC;
       break;
@@ -188,12 +184,11 @@ static void get_android_dev_by_user_selection(char *dev_name)
 
 static unsigned int get_android_dev_byname(char *dev_name)
 {
-  if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BUILTIN_MIC"))
+  if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BUILTIN_MIC")) {
     return AUDIO_DEVICE_IN_BUILTIN_MIC;
-
-  if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BACK_MIC"))
+  } else if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BACK_MIC")) {
     return AUDIO_DEVICE_IN_BACK_MIC;
-
+  }
   return 0;
 }
 
@@ -201,10 +196,8 @@ static virtual_mode_t get_mode_byname(char *app_name)
 {
   int i = 0;
 
-  for (i = 0; i < (int)(sizeof(vtrl_mode_name) / sizeof(char *)); i++)
-  {
-    if (!strcmp(vtrl_mode_name[i], app_name))
-    {
+  for (i = 0; i < (int)(sizeof(vtrl_mode_name) / sizeof(char *)); i++) {
+    if (!strcmp(vtrl_mode_name[i], app_name)) {
       return i;
     }
   }
@@ -215,10 +208,12 @@ static unsigned int get_hwdev_byname(char *dev_name)
 {
   int i = 0;
 
-  for (i = 0; i < (int)(sizeof(input_devname) / sizeof(char *)); i++)
-  {
-    if (!strcmp(input_devname[i], dev_name))
-    {
+  //get_android_dev_by_user_selection(dev_name);  // Change the dev_name according
+                                                // to the User-Selection (if
+                                                // needed)
+
+  for (i = 0; i < (int)(sizeof(input_devname) / sizeof(char *)); i++) {
+    if (!strcmp(input_devname[i], dev_name)) {
       return (HWDEV_BIT_IN | (HWDEV_IN_BASE << i));
     }
   }
@@ -277,7 +272,7 @@ static void parse_board_devlist(xmlNodePtr node, struct platform_config_t *confi
           {
             dev_cfg->coupling = 0x100000;
           }
-          else if( !strcmp((char*)coupling, "dc") )
+          else if( !strcmp((char*)coupling, "dv") )
           {
             dev_cfg->coupling = 0x200000;
           }

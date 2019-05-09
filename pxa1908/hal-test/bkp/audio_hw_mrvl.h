@@ -243,7 +243,7 @@ struct mrvl_stream_out {
   audio_channel_mask_t channel_mask;
   uint32_t sample_rate;
   pthread_mutex_t lock;
-  struct pcm *handle;
+  struct pcm *pcm;
   unsigned int period_size;  // frame counts
   unsigned int period_count;  // counts of period
   unsigned int written;  // total frames written
@@ -268,7 +268,7 @@ struct mrvl_stream_in {
   uint32_t sample_rate;
   int source;
   pthread_mutex_t lock;
-  struct pcm *handle;
+  struct pcm *pcm;
   unsigned int period_size;  // frame counts
   unsigned int period_count;  // counts of period
   bool standby;
@@ -280,6 +280,8 @@ struct mrvl_stream_in {
 #ifdef WITH_ACOUSTIC
   int acoustic_manager;
 #endif
+
+  uint32_t device;
 };
 
 struct mrvl_loopback_param

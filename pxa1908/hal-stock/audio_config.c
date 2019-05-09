@@ -22,6 +22,7 @@
 #include <hardware/audio.h>
 #include <system/audio.h>
 #include <cutils/log.h>
+#include <expat.h>
 #include <libxml/tree.h>
 
 #include "acm_api.h"
@@ -102,8 +103,7 @@ unsigned int get_mic_dev(virtual_mode_t v_mode, unsigned int android_dev)
           ALOGD("%s: find matched dev 0x%x", __FUNCTION__, app_cfg->device);
           return app_cfg->device;
         }
-
-        if (app_cfg->v_mode == V_MODE_DEF)
+        else if (app_cfg->v_mode == V_MODE_DEF)
         {
           default_dev = app_cfg->device;
         }
@@ -129,8 +129,7 @@ unsigned int get_mic_hw_flag(unsigned int hw_dev)
   struct board_dev_cfg_t *dev_cfg = mrvl_platform_cfg->board_dev_cfg;
 
   // for TTY, use the equivalent device
-  switch (hw_dev)
-  {
+  switch (hw_dev) {
     case HWDEV_IN_TTY:
       hw_dev = HWDEV_HSMIC;
       break;
@@ -154,8 +153,10 @@ unsigned int get_mic_hw_flag(unsigned int hw_dev)
       break;
   }
 
-  while (dev_cfg) {
-    if (dev_cfg->hw_dev == hw_dev) {
+  while (dev_cfg)
+  {
+    if (dev_cfg->hw_dev == hw_dev)
+    {
       flags = (dev_cfg->coupling | dev_cfg->connectivity);
     }
     dev_cfg = dev_cfg->next;
@@ -163,34 +164,10 @@ unsigned int get_mic_hw_flag(unsigned int hw_dev)
   return flags;
 }
 
-static void get_android_dev_by_user_selection(char *dev_name)
-{
-  uint32_t mic_mode = get_mic_mode();
-
-  ALOGD("%s mic_mode= %d", __FUNCTION__, mic_mode);
-
-  switch (mic_mode) {
-    case MIC_MODE_MIC1:
-    case MIC_MODE_MIC2:
-    case MIC_MODE_DUALMIC:
-      if (strstr(dev_name, "_SPK_MODE")) {
-        strcpy(dev_name, mic_mode_to_dev_name[mic_mode]);
-        strcat(dev_name, "_SPK_MODE");
-      } else
-        strcpy(dev_name, mic_mode_to_dev_name[mic_mode]);
-      break;
-
-    case MIC_MODE_NONE:
-    default:
-      break;
-  }
-}
-
 static unsigned int get_android_dev_byname(char *dev_name)
 {
   if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BUILTIN_MIC"))
     return AUDIO_DEVICE_IN_BUILTIN_MIC;
-
   if (!strcmp(dev_name, "AUDIO_DEVICE_IN_BACK_MIC"))
     return AUDIO_DEVICE_IN_BACK_MIC;
 
@@ -204,9 +181,7 @@ static virtual_mode_t get_mode_byname(char *app_name)
   for (i = 0; i < (int)(sizeof(vtrl_mode_name) / sizeof(char *)); i++)
   {
     if (!strcmp(vtrl_mode_name[i], app_name))
-    {
       return i;
-    }
   }
   return V_MODE_INVALID;
 }
@@ -218,9 +193,7 @@ static unsigned int get_hwdev_byname(char *dev_name)
   for (i = 0; i < (int)(sizeof(input_devname) / sizeof(char *)); i++)
   {
     if (!strcmp(input_devname[i], dev_name))
-    {
       return (HWDEV_BIT_IN | (HWDEV_IN_BASE << i));
-    }
   }
   return HWDEV_INVALID;
 }
@@ -458,14 +431,16 @@ void deinit_platform_config()
   }
 
   tmp_board_dev_cfg = mrvl_platform_cfg->board_dev_cfg;
-  while (tmp_board_dev_cfg) {
+  while (tmp_board_dev_cfg)
+  {
     mrvl_platform_cfg->board_dev_cfg = mrvl_platform_cfg->board_dev_cfg->next;
     free(tmp_board_dev_cfg);
     tmp_board_dev_cfg = mrvl_platform_cfg->board_dev_cfg;
   }
 
   tmp_droiddev_cfg = mrvl_platform_cfg->droid_dev_cfg;
-  while (tmp_droiddev_cfg) {
+  while (tmp_droiddev_cfg)
+  {
     struct app_cfg_t *tmp_app_cfg = tmp_droiddev_cfg->app_cfg;
     while (tmp_app_cfg) {
       tmp_droiddev_cfg->app_cfg = tmp_droiddev_cfg->app_cfg->next;

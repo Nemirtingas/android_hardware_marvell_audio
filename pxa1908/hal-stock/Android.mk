@@ -25,6 +25,7 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_C_INCLUDES += \
     external/libxml2/include \
+    external/expat/lib \
     external/icu/icu4c/source/common \
     external/tinyalsa/include/ \
     system/media/audio/include \
@@ -39,6 +40,7 @@ LOCAL_SHARED_LIBRARIES := \
     libhardware \
     libaudioutils \
     libeffects \
+    libexpat \
     libacm \
     libxml2
 
@@ -47,10 +49,7 @@ LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS += -Wall -Werror -Wno-parentheses
 #LOCAL_CFLAGS += -Wno-unused-parameter
-
-ifeq ($(TARGET_TINY_ALSA_IGNORE_SILENCE_SIZE),true)
-   LOCAL_CFLAGS += -DIGNORE_SILENCE_SIZE
-endif
+LOCAL_CFLAGS += -DIGNORE_SILENCE_SIZE
 
 ifeq ($(BOARD_WITH_SAMSUNG_POSTPROCESS_AUDIO),true)
    LOCAL_CFLAGS += -DSAMSUNG_AUDIO
@@ -89,7 +88,7 @@ endif
 LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) -D_POSIX_SOURCE
 
 ifeq ($(strip $(BOARD_AUDIO_COMPONENT_APU)), MAP-LITE)
-   LOCAL_CFLAGS += -DWITH_MAP_LITE
+   #LOCAL_CFLAGS += -DWITH_MAP_LITE
 endif
 
 include $(BUILD_SHARED_LIBRARY)

@@ -15,6 +15,7 @@
  */
 
 #define LOG_TAG "audio_hw_path"
+#define LOG_NDEBUG 0
 
 #include <system/audio.h>
 #include <cutils/log.h>

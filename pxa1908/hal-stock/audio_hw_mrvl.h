@@ -34,8 +34,8 @@ enum bt_headset_type {
 };
 
 enum loopback_type {
-  HW_LOOPBACK,
-  CP_LOOPBACK,
+  CP_LOOPBACK = 1,
+  HARDWARE_LOOPBACK,
   APP_LOOPBACK,
 };
 
@@ -65,6 +65,9 @@ enum headset_type {
 #define ALSA_DEVICE_HFP 4
 #endif
 
+//#define SAMPLE_RATE_OUT_DEFAULT 44100
+//#define SAMPLE_RATE_IN_DEFAULT 44100
+
 #define SAMPLE_RATE_OUT_DEFAULT 48000
 #define SAMPLE_RATE_IN_DEFAULT 48000
 #define SAMPLE_RATE_PHONE 16000
@@ -89,8 +92,10 @@ enum headset_type {
 #define DEEP_BUFFER_LONG_PERIOD_SIZE 4096
 #define DEEP_BUFFER_LONG_PERIOD_COUNT 2
 
-#define LOW_LATENCY_INPUT_PERIOD_SIZE 960
-#define LOW_LATENCY_INPUT_PERIOD_COUNT 2
+#define LOW_LATENCY_INPUT_PERIOD_SIZE 512
+#define LOW_LATENCY_INPUT_PERIOD_COUNT 4
+//#define LOW_LATENCY_INPUT_PERIOD_SIZE 512
+//#define LOW_LATENCY_INPUT_PERIOD_COUNT 4
 
 #define PHONE_OUTPUT_PERIOD_SIZE 320
 #define PHONE_OUTPUT_PERIOD_COUNT 2
@@ -103,7 +108,7 @@ enum headset_type {
 
 #define VC_RECORDING_INPUT_PERIOD_SIZE 320
 
-// minimum sleep time in out_write when write threshold is not reached
+// minimum sleep time in out_write() when write threshold is not reached
 #define MIN_WRITE_SLEEP_US 5000
 
 #ifndef AUDIO_PARAMETER_KEY_HFP_ENABLE
@@ -118,21 +123,22 @@ enum headset_type {
 #define AUDIO_PARAMETER_KEY_HFP_VOLUME            "hfp_volume"
 #endif
 
+
 #ifndef WITH_ADVANCED_AUDIO
- #define AUDIO_PARAMETER_STREAM_HW_VOLUME "hardware_volume"  // uint32_t
- #define AUDIO_PARAMETER_FM_STATUS "FM_STATUS"
- #define AUDIO_PARAMETER_FM_DEVICE "FM_DEVICE"
- #define AUDIO_PARAMETER_FM_VOLUME "FM_VOLUME"
- typedef enum { FM_DISABLE = 0, FM_ENABLE, FM_SETVOLUME } fm_status;
- 
- #define AUDIO_STREAM_FM AUDIO_STREAM_DEFAULT
- #define AUDIO_SOURCE_FMRADIO AUDIO_SOURCE_DEFAULT
- #define AUDIO_SOURCE_VOICE_VT_CALL AUDIO_SOURCE_DEFAULT
- #define AUDIO_DEVICE_OUT_FM_HEADPHONE AUDIO_DEVICE_OUT_DEFAULT
- #define AUDIO_DEVICE_OUT_FM_SPEAKER (AUDIO_DEVICE_OUT_DEFAULT + 1)
- #define AUDIO_DEVICE_IN_FMRADIO AUDIO_DEVICE_IN_DEFAULT
- #define AUDIO_DEVICE_IN_VT_MIC AUDIO_DEVICE_IN_DEFAULT
- #define AUDIO_MODE_IN_VT_CALL AUDIO_MODE_CURRENT
+#define AUDIO_PARAMETER_STREAM_HW_VOLUME "hardware_volume"  // uint32_t
+#define AUDIO_PARAMETER_FM_STATUS "FM_STATUS"
+#define AUDIO_PARAMETER_FM_DEVICE "FM_DEVICE"
+#define AUDIO_PARAMETER_FM_VOLUME "FM_VOLUME"
+typedef enum { FM_DISABLE = 0, FM_ENABLE, FM_SETVOLUME } fm_status;
+
+#define AUDIO_STREAM_FM AUDIO_STREAM_DEFAULT
+#define AUDIO_SOURCE_FMRADIO AUDIO_SOURCE_DEFAULT
+#define AUDIO_SOURCE_VOICE_VT_CALL AUDIO_SOURCE_DEFAULT
+#define AUDIO_DEVICE_OUT_FM_HEADPHONE AUDIO_DEVICE_OUT_DEFAULT
+#define AUDIO_DEVICE_OUT_FM_SPEAKER (AUDIO_DEVICE_OUT_DEFAULT + 1)
+#define AUDIO_DEVICE_IN_FMRADIO AUDIO_DEVICE_IN_DEFAULT
+#define AUDIO_DEVICE_IN_VT_MIC AUDIO_DEVICE_IN_DEFAULT
+#define AUDIO_MODE_IN_VT_CALL AUDIO_MODE_CURRENT
 #else
  #define AUDIO_PARAMETER_STREAM_HW_VOLUME "hardware_volume"  // uint32_t
  #define AUDIO_PARAMETER_FM_STATUS     "FM_STATUS"
@@ -220,6 +226,7 @@ struct virtual_path {
 struct mrvl_path_status {
   bool itf_state[ID_IPATH_TX_MAX + 1];  // output&input interface state
   bool mute_all_rx;   // all Rx sound should be muted
+  uint32_t mic_mode;
   uint32_t active_out_device;
   uint32_t active_in_device;
   uint32_t enabled_in_hwdev;
@@ -239,7 +246,6 @@ struct mrvl_stream_out {
   struct audio_stream_out stream;
   struct mrvl_audio_device *dev;
   audio_format_t format;
-  //int64_t format;
   audio_channel_mask_t channel_mask;
   uint32_t sample_rate;
   pthread_mutex_t lock;
@@ -250,7 +256,6 @@ struct mrvl_stream_out {
   bool standby;
   int write_threshold;
   bool use_long_periods;
-  // mrvl_audio_effect list
   struct listnode effect_interfaces;
   audio_io_handle_t io_handle;
 
@@ -262,8 +267,7 @@ struct mrvl_stream_out {
 struct mrvl_stream_in {
   struct audio_stream_in stream;
   struct mrvl_audio_device *dev;
-  audio_format_t format;
-  //int64_t format;
+  uint32_t format;
   audio_channel_mask_t channel_mask;
   uint32_t sample_rate;
   int source;
@@ -272,7 +276,6 @@ struct mrvl_stream_in {
   unsigned int period_size;  // frame counts
   unsigned int period_count;  // counts of period
   bool standby;
-  // mrvl_audio_effect list
   struct listnode effect_interfaces;
   struct echo_reference_buffer ref_buffer;
   audio_io_handle_t io_handle;
@@ -282,8 +285,7 @@ struct mrvl_stream_in {
 #endif
 };
 
-struct mrvl_loopback_param
-{
+struct mrvl_loopback_param {
   uint32_t headset_flag;  // record headset type of  mono and stereo
   uint32_t in_device;
   uint32_t out_device;
@@ -300,13 +302,12 @@ struct mrvl_audio_device {
   uint32_t in_device;
   uint32_t fm_device;
   bool mic_mute;
+  struct mrvl_loopback_param loopback_param;
   int tty_mode;
   pthread_mutex_t lock;
   float voice_volume;
   int fm_volume;
   int hfp_volume;
-  int fm_mute;
-  int realcall;
   audio_mode_t mode;
   char plug_type[256];
   bool in_call;  // record voice call status
@@ -325,13 +326,6 @@ struct mrvl_audio_device {
   struct pcm *hfp_out_handle;
   struct pcm *hfp_in_handle;
   struct listnode audio_patches;
-  int factory_test_type;
-  int in_loopback_device;
-  int out_loopback_device;
-  int factory_test_route;
-  int factory_out_device;
-  int factory_return_out_device;
-  bool factory_test_mic_check;
 };
 
 #endif /* __AUDIO_HW_MRVL_H__ */
