@@ -3999,8 +3999,8 @@ static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
   madev->device.open_input_stream = mrvl_hw_dev_open_input_stream;
   madev->device.close_input_stream = mrvl_hw_dev_close_input_stream;
   madev->device.dump = mrvl_hw_dev_dump;
-  madev->device.create_audio_patch = mrvl_hw_dev_create_audio_patch;
-  madev->device.release_audio_patch = mrvl_hw_dev_release_audio_patch;
+  //madev->device.create_audio_patch = mrvl_hw_dev_create_audio_patch;
+  //madev->device.release_audio_patch = mrvl_hw_dev_release_audio_patch;
   madev->device.get_audio_port = mrvl_hw_dev_get_audio_port;
   madev->device.set_audio_port_config = mrvl_hw_dev_set_audio_port_config;
 
