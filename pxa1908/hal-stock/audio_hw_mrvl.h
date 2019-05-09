@@ -65,8 +65,11 @@ enum headset_type {
 #define ALSA_DEVICE_HFP 4
 #endif
 
-#define SAMPLE_RATE_OUT_DEFAULT 44100
-#define SAMPLE_RATE_IN_DEFAULT 44100
+//#define SAMPLE_RATE_OUT_DEFAULT 44100
+//#define SAMPLE_RATE_IN_DEFAULT 44100
+
+#define SAMPLE_RATE_OUT_DEFAULT 48000
+#define SAMPLE_RATE_IN_DEFAULT 48000
 #define SAMPLE_RATE_PHONE 16000
 #define SAMPLE_RATE_VC_RECORDING 16000
 #define SAMPLE_RATE_OUT_FM 48000
@@ -91,6 +94,8 @@ enum headset_type {
 
 #define LOW_LATENCY_INPUT_PERIOD_SIZE 512
 #define LOW_LATENCY_INPUT_PERIOD_COUNT 4
+//#define LOW_LATENCY_INPUT_PERIOD_SIZE 512
+//#define LOW_LATENCY_INPUT_PERIOD_COUNT 4
 
 #define PHONE_OUTPUT_PERIOD_SIZE 320
 #define PHONE_OUTPUT_PERIOD_COUNT 2
@@ -105,6 +110,19 @@ enum headset_type {
 
 // minimum sleep time in out_write() when write threshold is not reached
 #define MIN_WRITE_SLEEP_US 5000
+
+#ifndef AUDIO_PARAMETER_KEY_HFP_ENABLE
+#define AUDIO_PARAMETER_KEY_HFP_ENABLE            "hfp_enable"
+#endif
+
+#ifndef AUDIO_PARAMETER_KEY_HFP_SET_SAMPLING_RATE 
+#define AUDIO_PARAMETER_KEY_HFP_SET_SAMPLING_RATE "hfp_set_sampling_rate"
+#endif
+
+#ifndef AUDIO_PARAMETER_KEY_HFP_VOLUME
+#define AUDIO_PARAMETER_KEY_HFP_VOLUME            "hfp_volume"
+#endif
+
 
 #ifndef WITH_ADVANCED_AUDIO
 #define AUDIO_PARAMETER_STREAM_HW_VOLUME "hardware_volume"  // uint32_t
@@ -154,8 +172,8 @@ typedef enum { FM_DISABLE = 0, FM_ENABLE, FM_SETVOLUME } fm_status;
 /* TTY mode selection */
 enum tty_modes { TTY_MODE_OFF = 0, TTY_MODE_FULL, TTY_MODE_HCO, TTY_MODE_VCO };
 
-static char *const EXTRA_VOL = "Extra_volume";
-static char *const MUTE_ALL_RX = "mute_voice_Rx";
+static char *const EXTRA_VOL = "extraVolume";
+static char *const MUTE_ALL_RX = "allsoundmute";
 static char *const VOICE_USER_EQ = "dha";
 static char *const MICROPHONE_MODE = "microphone_mode";
 static char *const LOOPBACK = "Loopback";
@@ -163,6 +181,12 @@ static char *const LOOPBACK_INPUT_DEVICE = "input_dev";
 static char *const LOOPBACK_OUTPUT_DEVICE = "output_dev";
 static char *const LOOPBACK_HEADSET_FLAG = "hs_flag";
 static char *const LOOPBACK_MODE_SETTTING = "loopback_mode";
+
+#define AUDIO_PARAMETER_KEY_SOLUTION              "solution"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_TYPE     "factory_test_type"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_PATH     "factory_test_path"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_LOOPBACK "factory_test_loopback"
+#define AUDIO_PARAMETER_KEY_FACTORY_TEST_ROUTE    "factory_test_route"
 
 enum output_type {
   OUTPUT_LOW_LATENCY,  // low latency output stream
@@ -202,13 +226,21 @@ struct virtual_path {
 struct mrvl_path_status {
   bool itf_state[ID_IPATH_TX_MAX + 1];  // output&input interface state
   bool mute_all_rx;   // all Rx sound should be muted
-  uint32_t mic_mode;  // mic mode in marvell settings
+  uint32_t mic_mode;
   uint32_t active_out_device;
   uint32_t active_in_device;
   uint32_t enabled_in_hwdev;
   struct listnode out_virtual_path;
   struct listnode in_virtual_path;
 };
+
+#ifdef MRVL_AEC
+struct mrvl_audio_effect
+{
+    effect_handle_t effect;
+    struct listnode link;
+};
+#endif
 
 struct mrvl_stream_out {
   struct audio_stream_out stream;
@@ -269,8 +301,8 @@ struct mrvl_audio_device {
   uint32_t out_device;
   uint32_t in_device;
   uint32_t fm_device;
-  struct mrvl_loopback_param loopback_param;
   bool mic_mute;
+  struct mrvl_loopback_param loopback_param;
   int tty_mode;
   pthread_mutex_t lock;
   float voice_volume;

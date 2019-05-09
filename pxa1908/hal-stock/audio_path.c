@@ -337,30 +337,37 @@ static void handle_ctl_info(char *path_name, int method, const char *old_path, i
     return;
   }
 
+  if( !strcmp(path_name, "FromAMic1") || !strcmp(path_name, "AMic1") )
+  {
+    ALOGE("%d HERE val = %x", __LINE__, val);
+    val |= 0x200000;
+    ALOGE("%d HERE val = %x", __LINE__, val);
+  }
+
   switch (method) {
     case METHOD_ENABLE:
-      ALOGI("Enable path %s, value is 0x%08x", path_name, val);
+      ALOGI("%s: Enable path %s, value is 0x%08x", __func__, path_name, val);
       ret = ACMAudioPathEnable(path_name, val);
       break;
     case METHOD_DISABLE:
-      ALOGI("Disable path %s, value is 0x%08x", path_name, val);
+      ALOGI("%s: Disable path %s, value is 0x%08x", __func__, path_name, val);
       ret = ACMAudioPathHotDisable(path_name, val);
       break;
     case METHOD_MUTE:
-      ALOGI("Mute path %s, value is 0x%08x", path_name, val);
+      ALOGI("%s: Mute path %s, value is 0x%08x", __func__, path_name, val);
       ret = ACMAudioPathMute(path_name, val);
       break;
     case METHOD_VOLUME_SET:
-      ALOGI("Set Volume for path %s, value = 0x%08x", path_name, val);
+      ALOGI("%s: Set Volume for path %s, value = 0x%08x", __func__, path_name, val);
       ret = ACMAudioPathVolumeSet(path_name, val);
       break;
     case METHOD_SWITCH:
-      ALOGI("Switch from old path %s to path %s, value is 0x%08x",
-            old_path, path_name, val);
+      ALOGI("%s: Switch from old path %s to path %s, value is 0x%08x",
+            __func__, old_path, path_name, val);
       ret = ACMAudioPathSwitch(old_path, path_name, val);
       break;
     default:
-      ALOGI("not support method %d\n", method);
+      ALOGI("%s: not support method %d\n", __func__, method);
       break;
   }
   if (ret != ACM_RC_OK) {

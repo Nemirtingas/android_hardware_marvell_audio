@@ -136,9 +136,6 @@ typedef enum ID_VIRTUAL_MODE {
   V_MODE_VT,            // AUDIO_MODE_IN_VT_CALL
   V_MODE_HFP,           // HFP mode in AUDIO_MODE_IN_CALL
   V_MODE_FM,            // when FM_STATUS=on
-  V_MODE_CP_LOOPBACK,   // test cp loopback
-  V_MODE_HW_LOOPBACK,   // test hw loopback
-  V_MODE_APP_LOOPBACK,  // test app loopback
   V_MODE_DEF            // add for default config to choose HW device
 } virtual_mode_t;
 

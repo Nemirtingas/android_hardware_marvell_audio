@@ -250,7 +250,7 @@ static void parse_board_devlist(xmlNodePtr node, struct platform_config_t *confi
           {
             dev_cfg->coupling = 0x100000;
           }
-          else if( !strcmp((char*)coupling, "dv") )
+          else if( !strcmp((char*)coupling, "dc") )
           {
             dev_cfg->coupling = 0x200000;
           }

@@ -15,7 +15,7 @@
  */
 
 #define LOG_TAG "audio_hw_mrvl"
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 #include <unistd.h>
 #include <errno.h>
@@ -249,16 +249,6 @@ void get_in_vrtl_mode(struct mrvl_audio_device *madev, virtual_mode_t *v_mode) {
       }
       *v_mode = priority_modes_input[i].v_mode;
       break;
-    }
-  }
-
-  if (madev->loopback_param.on) {
-    if (madev->loopback_param.type == CP_LOOPBACK) {
-      *v_mode = V_MODE_CP_LOOPBACK;
-    } else if (madev->loopback_param.type == HARDWARE_LOOPBACK) {
-      *v_mode = V_MODE_HW_LOOPBACK;
-    } else if (madev->loopback_param.type == APP_LOOPBACK) {
-      *v_mode = V_MODE_APP_LOOPBACK;
     }
   }
 }
@@ -627,6 +617,7 @@ void select_virtual_path(struct mrvl_audio_device *madev) {
           if (tmp_vpath->path_device & AUDIO_DEVICE_BIT_IN) {
             hw_dev = mrvl_path_manager.enabled_in_hwdev;
           }
+          ALOGE("%d HERE value = %x", __LINE__, value);
           route_vrtl_path(tmp_vpath->v_mode, hw_dev, METHOD_DISABLE, flag,
                           value);
           list_remove(&tmp_vpath->link);
@@ -678,6 +669,7 @@ void select_virtual_path(struct mrvl_audio_device *madev) {
           // configuration which has register misc "shared" in virtual path xml
           if (tmp_vpath->is_priority_highest == false) value |= SHARED_GAIN;
 
+          ALOGE("%d HERE value = %x", __LINE__, value);
           route_vrtl_path(tmp_vpath->v_mode, hw_dev, METHOD_ENABLE, flag,
                           value);
           list_add_tail(&mrvl_path_manager.out_virtual_path, &tmp_vpath->link);
@@ -794,6 +786,7 @@ void route_devices(struct mrvl_audio_device *madev, unsigned int devices,
       (devices & AUDIO_DEVICE_OUT_SPEAKER)) {
     // convert android device to HW device and route HW device
     hw_dev = convert2_hwdev(madev, AUDIO_DEVICE_OUT_SPEAKER);
+    ALOGE("%d HERE value = %x", __LINE__, value);
     route_hw_device(hw_dev, enable, value);
     devices &= ~AUDIO_DEVICE_OUT_SPEAKER;
   }
@@ -802,7 +795,9 @@ void route_devices(struct mrvl_audio_device *madev, unsigned int devices,
   if (devices & ~AUDIO_DEVICE_BIT_IN) {
     hw_dev = convert2_hwdev(madev, devices);
     // flag for connectivity and coupling
+    ALOGE("%d HERE value = %x", __LINE__, value);
     value |= get_mic_hw_flag(hw_dev);
+    ALOGE("%d HERE value = %x", __LINE__, value);
     if ((devices & AUDIO_DEVICE_BIT_IN) && (enable == METHOD_ENABLE)) {
       mrvl_path_manager.enabled_in_hwdev = hw_dev;
     } else if ((devices & AUDIO_DEVICE_BIT_IN) && (enable == METHOD_DISABLE)) {
@@ -813,6 +808,7 @@ void route_devices(struct mrvl_audio_device *madev, unsigned int devices,
       value |= get_loopback_headset_flag(madev);
       ALOGI("choose headset flag: 0x%x", value);
     }
+    ALOGE("%d HERE value = %x", __LINE__, value);
     route_hw_device(hw_dev, enable, value);
   }
 }
