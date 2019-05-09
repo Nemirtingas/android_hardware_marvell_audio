@@ -15,7 +15,7 @@
  */
 
 #define LOG_TAG "audio_hw_mrvl"
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 #include <unistd.h>
 #include <errno.h>
@@ -53,7 +53,7 @@
 #endif
 
 #if 0
-#define ENTER_FUNC() ALOGV("Entering %s", __FUNCTION__)
+#define ENTER_FUNC() ALOGV("HERE Entering %s", __FUNCTION__)
 #else
 #define ENTER_FUNC()
 #endif
@@ -202,11 +202,8 @@ static audio_channel_mask_t out_get_channels(const struct audio_stream *stream);
 static audio_format_t out_get_format(const struct audio_stream *stream);
 
 
-//uint32_t get_mic_mode(void) { return mrvl_path_manager.mic_mode; }
-
 void dump_pcm_data( const char *dump_file, const char *buffer, size_t size )
 {
-  ENTER_FUNC();
 }
 
 unsigned char get_cpmute_rampdown_level()
@@ -802,7 +799,7 @@ void select_virtual_path(struct mrvl_audio_device *madev)
       }
       j_set_hw_volume(V_MODE_FM, v32, v31);
     }
-          
+
           */
 
         } else {
@@ -922,7 +919,8 @@ void route_devices(struct mrvl_audio_device *madev, unsigned int devices,
 
   // if audio HW is set to all Rx sound mute, then ignore out device enable
   if (mrvl_path_manager.mute_all_rx && (enable == METHOD_ENABLE) &&
-      !(devices & AUDIO_DEVICE_BIT_IN)) {
+      !(devices & AUDIO_DEVICE_BIT_IN))
+  {
     ALOGI("%s in All Rx sound mute status, ignore this operation.",
           __FUNCTION__);
     return;
@@ -1119,7 +1117,8 @@ static void select_output_device(struct mrvl_audio_device *madev)
 
   // then check device to enable
   unsigned int dev_toenable = madev->out_device & ~unchange_dev;
-  if (dev_toenable) {
+  if (dev_toenable)
+  {
     route_devices(madev, dev_toenable, METHOD_ENABLE, 0);
     mrvl_path_manager.active_out_device |= dev_toenable;
   }
@@ -1689,6 +1688,28 @@ exit_set_hfp:
     pthread_mutex_unlock(&madev->lock);
 }
 
+static void set_device_parameters(struct mrvl_audio_device *madev, struct str_parms *param)
+{
+    char buffer[32];
+    int val;
+
+    pthread_mutex_lock(&madev->lock);
+
+    // device connected
+    if( str_parms_get_int(param, AUDIO_PARAMETER_DEVICE_CONNECT, &val) >= 0 )
+    {
+        str_parms_del(param, AUDIO_PARAMETER_DEVICE_CONNECT);
+    }
+    // device disconnected
+    else if( str_parms_get_int(param, AUDIO_PARAMETER_DEVICE_DISCONNECT, &val) >= 0 )
+    {
+        str_parms_del(param, AUDIO_PARAMETER_DEVICE_DISCONNECT);
+    }
+    //4        // AUDIO_DEVICE_OUT_WIRED_HEADSET
+    //80000010 // AUDIO_DEVICE_IN_WIRED_HEADSET
+
+    pthread_mutex_unlock(&madev->lock);
+}
 
 static bool is_phone_call(int mode) { return (mode == AUDIO_MODE_IN_CALL); }
 
@@ -2092,6 +2113,10 @@ static int out_set_parameters(struct audio_stream *stream,
       str_parms_destroy(parms);
       return ret;
     }
+
+    // I don't want to play those sidetones on speaker when I'm on headphone/headset
+    if( val & AUDIO_DEVICE_OUT_WIRED_HEADSET | val & AUDIO_DEVICE_OUT_WIRED_HEADPHONE )
+        val &= ~AUDIO_DEVICE_OUT_SPEAKER;
 
     if( val )
     {
@@ -2929,9 +2954,10 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
 
   set_fm_parameters(madev, param);
   set_hfp_parameters(madev, param);
+  // A device has been connected/disconnected
+  set_device_parameters(madev, param);
 
   pthread_mutex_lock(&madev->lock);
-
 
   // set TTY mode
   key = AUDIO_PARAMETER_KEY_TTY_MODE;
@@ -3142,10 +3168,10 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
       }
       str_parms_del(param, key);
   }
-  
+
   key = AUDIO_PARAMETER_KEY_FACTORY_TEST_PATH;
   if( (ret = str_parms_get_str(param, key, value, sizeof(value))) >= 0 )
-  { 
+  {
       ALOGI("%s: factory_test_path, factory_loopback_mode=%d, value=%s, loop_type=%s", __FUNCTION__, madev->factory_test_type, value, (loopback_param == 1 ? "cp" : "ap"));
 
       if( madev->factory_test_type )
@@ -3359,7 +3385,7 @@ static char *mrvl_hw_dev_get_parameters(const struct audio_hw_device *dev,
   key = EXTRA_VOL;
   if (str_parms_get_str(param, key, val_str, sizeof(val_str)) >= 0)
   {
-    if (snprintf(val_str, sizeof(val_str), "%s", 
+    if (snprintf(val_str, sizeof(val_str), "%s",
           madev->use_extra_vol ? "true" : "false") >= 0)
     {
       ret_val = strdup(val_str);
@@ -3391,12 +3417,7 @@ static int mrvl_hw_dev_set_voice_volume(struct audio_hw_device *dev,
 
 static int mrvl_hw_dev_set_master_volume(struct audio_hw_device *dev,
                                          float volume) {
-  return -ENOSYS;
-}
-
-static int mrvl_hw_dev_get_master_volume(struct audio_hw_device *dev __unused,
-                                         float *volume __unused)
-{
+  ENTER_FUNC();
   return -ENOSYS;
 }
 
@@ -3886,7 +3907,7 @@ static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
   if (!madev) return -ENOMEM;
 
   madev->device.common.tag = HARDWARE_DEVICE_TAG;
-  madev->device.common.version = AUDIO_DEVICE_API_VERSION_CURRENT;
+  madev->device.common.version = AUDIO_DEVICE_API_VERSION_2_0;
   madev->device.common.module = (struct hw_module_t *)module;
   madev->device.common.close = mrvl_hw_dev_close;
 
@@ -3894,7 +3915,6 @@ static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
   madev->device.init_check = mrvl_hw_dev_init_check;
   madev->device.set_voice_volume = mrvl_hw_dev_set_voice_volume;
   madev->device.set_master_volume = mrvl_hw_dev_set_master_volume;
-  madev->device.get_master_volume = mrvl_hw_dev_get_master_volume;
   madev->device.set_mode = mrvl_hw_dev_set_mode;
   madev->device.set_mic_mute = mrvl_hw_dev_set_mic_mute;
   madev->device.get_mic_mute = mrvl_hw_dev_get_mic_mute;
@@ -3972,13 +3992,13 @@ static struct hw_module_methods_t hal_module_methods = {
 
 struct audio_module HAL_MODULE_INFO_SYM = {
     .common =
-        {
-            .tag = HARDWARE_MODULE_TAG,
-            .module_api_version = AUDIO_MODULE_API_VERSION_0_1,
-            .hal_api_version = HARDWARE_HAL_API_VERSION,
-            .id = AUDIO_HARDWARE_MODULE_ID,
-            .name = "Marvll audio HW HAL",
-            .author = "Nemirtingas (Maxime P) & Marvell APSE/SE1-Audio",
-            .methods = &hal_module_methods,
-        },
+    {
+        .tag                = HARDWARE_MODULE_TAG,
+        .module_api_version = AUDIO_MODULE_API_VERSION_0_1,
+        .hal_api_version    = HARDWARE_HAL_API_VERSION,
+        .id                 = AUDIO_HARDWARE_MODULE_ID,
+        .name               = "Marvell audio HW HAL",
+        .author             = "Nemirtingas (Maxime P) & Marvell APSE/SE1-Audio",
+        .methods            = &hal_module_methods,
+    },
 };
