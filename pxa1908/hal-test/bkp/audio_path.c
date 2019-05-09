@@ -15,6 +15,7 @@
  */
 
 #define LOG_TAG "audio_hw_path"
+#define LOG_NDEBUG 0
 
 #include <system/audio.h>
 #include <cutils/log.h>
@@ -303,7 +304,7 @@ static const struct {
     {V_MODE_FM, HWDEV_INVALID, 0, PATH_NAME(FMI2SRecordFromFM)},
 };
 
-/*static*/ void handle_ctl_info(char *path_name, int method, int val)
+static void handle_ctl_info(char *path_name, int method, int val)
 {
   ACM_ReturnCode ret = ACM_RC_OK;
   if (path_name == NULL) {
