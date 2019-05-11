@@ -30,6 +30,29 @@
 #define AUDIO_PLATFORM_CONFIG_FILE "/etc/platform_audio_config.xml"
 #define DEVICE_NAME_LEN_MAX 32
 
+#if 1
+    #ifdef ALOGE
+    #undef ALOGE
+    #endif
+    #define ALOGE(...) {}
+    #ifdef ALOGW
+    #undef ALOGW
+    #endif
+    #define ALOGW(...) {}
+    #ifdef ALOGI
+    #undef ALOGI
+    #endif
+    #define ALOGI(...) {}
+    #ifdef ALOGV
+    #undef ALOGV
+    #endif
+    #define ALOGV(...) {}
+    #ifdef ALOGD
+    #undef ALOGD
+    #endif
+    #define ALOGD(...) {}
+#endif
+
 struct app_cfg_t {
   virtual_mode_t v_mode;
   unsigned int device;  // support multi configurations
@@ -281,7 +304,7 @@ static void parse_board_devlist(xmlNodePtr node, struct platform_config_t *confi
           {
             dev_cfg->coupling = 0x200000;
           }
-          else 
+          else
           {
             dev_cfg->coupling = 0;
           }
@@ -369,7 +392,7 @@ int init_platform_config()
     ALOGE("%s: failed to parse xml file %s: %s", __FUNCTION__, config_file, strerror(errno));
     return -1;
   }
-  
+
   root_elem = xmlDocGetRootElement(xml_doc);
   if( !root_elem )
   {
@@ -427,7 +450,7 @@ int init_platform_config()
         {
           parse_app_config(app_node, droid_dev_cfg);
         }
-      } 
+      }
       if( mrvl_platform_cfg->droid_dev_cfg )
       {
         struct android_dev_cfg_t *tmp_dev_cfg = mrvl_platform_cfg->droid_dev_cfg;

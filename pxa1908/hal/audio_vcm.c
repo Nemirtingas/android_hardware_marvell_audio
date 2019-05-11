@@ -7,8 +7,28 @@
 
 #include "audio_hw_mrvl.h"
 
-#define true 1
-#define false 0
+#if 1
+    #ifdef ALOGE
+    #undef ALOGE
+    #endif
+    #define ALOGE(...) {}
+    #ifdef ALOGW
+    #undef ALOGW
+    #endif
+    #define ALOGW(...) {}
+    #ifdef ALOGI
+    #undef ALOGI
+    #endif
+    #define ALOGI(...) {}
+    #ifdef ALOGV
+    #undef ALOGV
+    #endif
+    #define ALOGV(...) {}
+    #ifdef ALOGD
+    #undef ALOGD
+    #endif
+    #define ALOGD(...) {}
+#endif
 
 static bool vcmInitialised = false;
 static int32_t recording_stream = 0;
@@ -185,7 +205,7 @@ int vcm_recording_start()
 int vcm_set_loopback(audio_devices_t device, bool arg2)
 {
     int res;
-    
+
     res = vcm_check_init();
     if( !res )
     {

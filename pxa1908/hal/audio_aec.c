@@ -3,6 +3,29 @@
 #include <stdlib.h>
 #include <cutils/log.h>
 
+#if 1
+    #ifdef ALOGE
+    #undef ALOGE
+    #endif
+    #define ALOGE(...) {}
+    #ifdef ALOGW
+    #undef ALOGW
+    #endif
+    #define ALOGW(...) {}
+    #ifdef ALOGI
+    #undef ALOGI
+    #endif
+    #define ALOGI(...) {}
+    #ifdef ALOGV
+    #undef ALOGV
+    #endif
+    #define ALOGV(...) {}
+    #ifdef ALOGD
+    #undef ALOGD
+    #endif
+    #define ALOGD(...) {}
+#endif
+
 extern int EffectRelease(effect_handle_t handle);
 
 void create_echo_ref(struct mrvl_stream_in *in, struct mrvl_stream_out *out)
@@ -244,9 +267,9 @@ int in_remove_audio_effect(struct audio_stream *in, struct mrvl_audio_effect *ef
 
 int in_release_effect(struct audio_stream * in, effect_uuid_t *effect)
 {
-    int res = 0;    
+    int res = 0;
     struct mrvl_audio_effect *maeffect;
-    
+
     maeffect = in_get_effect(in, effect);
     if( maeffect )
     {

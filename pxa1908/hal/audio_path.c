@@ -24,6 +24,29 @@
 #include "acm_param.h"
 #include "audio_path.h"
 
+#if 1
+    #ifdef ALOGE
+    #undef ALOGE
+    #endif
+    #define ALOGE(...) {}
+    #ifdef ALOGW
+    #undef ALOGW
+    #endif
+    #define ALOGW(...) {}
+    #ifdef ALOGI
+    #undef ALOGI
+    #endif
+    #define ALOGI(...) {}
+    #ifdef ALOGV
+    #undef ALOGV
+    #endif
+    #define ALOGV(...) {}
+    #ifdef ALOGD
+    #undef ALOGD
+    #endif
+    #define ALOGD(...) {}
+#endif
+
 // define the path interface, include playback input and record output path
 #define MAX_NUM_ITF (sizeof(gPathInterface) / sizeof(gPathInterface[0]))
 static const struct {

@@ -42,6 +42,29 @@
 #define RAMP_DOWN_GAIN_INITIAL_VALUE 1
 #define RAMP_UP_GAIN_INITIAL_VALUE 0.0001
 
+#if 1
+    #ifdef ALOGE
+    #undef ALOGE
+    #endif
+    #define ALOGE(...) {}
+    #ifdef ALOGW
+    #undef ALOGW
+    #endif
+    #define ALOGW(...) {}
+    #ifdef ALOGI
+    #undef ALOGI
+    #endif
+    #define ALOGI(...) {}
+    #ifdef ALOGV
+    #undef ALOGV
+    #endif
+    #define ALOGV(...) {}
+    #ifdef ALOGD
+    #undef ALOGD
+    #endif
+    #define ALOGD(...) {}
+#endif
+
 static bool ramp_up_begin = false;
 static bool ramp_down_begin = false;
 static double ramp_gain_value = RAMP_UP_GAIN_INITIAL_VALUE;

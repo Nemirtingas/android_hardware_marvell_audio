@@ -53,9 +53,29 @@
 #endif
 
 #if 0
-#define ENTER_FUNC() ALOGV("HERE Entering %s", __FUNCTION__)
+    #define ENTER_FUNC() ALOGV("HERE Entering %s", __FUNCTION__)
 #else
-#define ENTER_FUNC()
+    #define ENTER_FUNC() {}
+    #ifdef ALOGE
+    #undef ALOGE
+    #endif
+    #define ALOGE(...) {}
+    #ifdef ALOGW
+    #undef ALOGW
+    #endif
+    #define ALOGW(...) {}
+    #ifdef ALOGI
+    #undef ALOGI
+    #endif
+    #define ALOGI(...) {}
+    #ifdef ALOGV
+    #undef ALOGV
+    #endif
+    #define ALOGV(...) {}
+    #ifdef ALOGD
+    #undef ALOGD
+    #endif
+    #define ALOGD(...) {}
 #endif
 
 static int loopback_param = 0;
