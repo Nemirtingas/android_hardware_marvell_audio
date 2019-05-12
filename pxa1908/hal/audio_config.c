@@ -30,7 +30,7 @@
 #define AUDIO_PLATFORM_CONFIG_FILE "/etc/platform_audio_config.xml"
 #define DEVICE_NAME_LEN_MAX 32
 
-#if 1
+#ifdef DISABLE_LOGS
     #ifdef ALOGE
     #undef ALOGE
     #endif

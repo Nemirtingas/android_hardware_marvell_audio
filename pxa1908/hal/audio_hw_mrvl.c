@@ -52,8 +52,9 @@
 #include "audio_aec.h"
 #endif
 
-#if 0
-    #define ENTER_FUNC() ALOGV("HERE Entering %s", __FUNCTION__)
+#ifndef DISABLE_LOGS
+    //#define ENTER_FUNC() ALOGV("HERE Entering %s", __FUNCTION__)
+    #define ENTER_FUNC() {}
 #else
     #define ENTER_FUNC() {}
     #ifdef ALOGE
@@ -766,21 +767,25 @@ void select_virtual_path(struct mrvl_audio_device *madev)
     struct listnode *plist = NULL;
     struct listnode *tmp_node = NULL;
     struct virtual_path *tmp_vpath = NULL;
-    list_for_each_safe(plist, tmp_node, &active_v_path) {
+    list_for_each_safe(plist, tmp_node, &active_v_path)
+    {
       tmp_vpath = node_to_item(plist, struct virtual_path, link);
       bool hasItem = false;
       flag = 0;
       value = 0;
-      if (tmp_vpath != NULL) {
+      if (tmp_vpath != NULL)
+      {
         struct listnode *plist_old = NULL;
         struct listnode *tmp_node_old = NULL;
         struct virtual_path *tmp_old_vpath = NULL;
         list_for_each_safe(plist_old, tmp_node_old,
-                           &mrvl_path_manager.out_virtual_path) {
+                           &mrvl_path_manager.out_virtual_path)
+        {
           tmp_old_vpath = node_to_item(plist_old, struct virtual_path, link);
           if ((tmp_old_vpath != NULL) &&
               (tmp_old_vpath->v_mode == tmp_vpath->v_mode) &&
-              (tmp_old_vpath->path_device == tmp_vpath->path_device)) {
+              (tmp_old_vpath->path_device == tmp_vpath->path_device))
+          {
             hasItem = true;
             break;
           }
@@ -788,7 +793,8 @@ void select_virtual_path(struct mrvl_audio_device *madev)
 
         list_remove(&tmp_vpath->link);
         // can not find same item in old virtual list, then enable and add it
-        if (!hasItem) {
+        if (!hasItem)
+        {
           // voice recognition
           flag |= (audio_is_input_device(tmp_vpath->path_device) &&
                    madev->use_voice_recognition)
@@ -806,30 +812,17 @@ void select_virtual_path(struct mrvl_audio_device *madev)
                           value);
           list_add_tail(&mrvl_path_manager.out_virtual_path, &tmp_vpath->link);
 
-          /* :!: TODO :!:
-          if ( v15[-2].prev == (struct listnode *)&byte_7 )
-    {
-      v29 = v1->fm_mute;
-      if ( v29 )
-      {
-        if ( v29 != 1 )
-          goto LABEL_68;
-        _android_log_print(3, "audio_hw_mrvl", "%s fm radio is mute", "select_virtual_path");
-        v33 = j_convert2_hwdev((int)v1, v28);
-        v31 = 0;
-        v32 = v33;
-      }
-      else
-      {
-        v30 = j_convert2_hwdev((int)v1, v28);
-        v31 = v1->fm_volume;
-        v32 = v30;
-      }
-      j_set_hw_volume(V_MODE_FM, v32, v31);
-    }
-
-          */
-
+          if( tmp_vpath->v_mode == V_MODE_FM )
+          {
+              int volume = madev->fm_volume;
+              hw_dev = convert2_hwdev(madev, hw_dev);
+              if( madev->fm_mute )
+              {
+                ALOGI("%s fm radio is mute", __func__);
+                volume = 0;
+              }
+              set_hw_volume(V_MODE_FM, hw_dev, volume);
+          }
         } else {
           free(tmp_vpath);
           tmp_vpath = NULL;
@@ -1002,14 +995,16 @@ static void select_input_device(struct mrvl_audio_device *madev) {
   // check input parameter
   if (((mrvl_path_manager.active_in_device == madev->in_device) &&
        (mrvl_path_manager.enabled_in_hwdev ==
-        convert2_hwdev(madev, madev->in_device))) ||
+        convert2_hwdev(madev, mrvl_path_manager.active_in_device))) ||
+        //convert2_hwdev(madev, madev->in_device))) ||
       ((madev->in_device & ~AUDIO_DEVICE_BIT_IN) == AUDIO_DEVICE_NONE)) {
     ALOGI("%s same or null device, return.", __FUNCTION__);
     return;
   }
 
   // disable old device if exists
-  if (mrvl_path_manager.active_in_device) {
+  if (mrvl_path_manager.active_in_device)
+  {
     // hot disable device, which means don't shutdown codec
     route_devices(madev, mrvl_path_manager.active_in_device, METHOD_DISABLE, 1);
     mrvl_path_manager.active_in_device = AUDIO_DEVICE_NONE;
@@ -1310,7 +1305,7 @@ static int start_input_stream(struct mrvl_stream_in *in) {
     in->handle = NULL;
   }
 
-  if (in->source == AUDIO_SOURCE_FMRADIO)
+  if (in->source == AUDIO_SOURCE_IN_FM_TUNER)
   {
     if (madev->mode != AUDIO_MODE_IN_CALL)
     {
@@ -1385,7 +1380,8 @@ static int do_input_standby(struct mrvl_stream_in *in) {
       pcm_stop(in->handle);
     }
 
-    if (in->source == AUDIO_SOURCE_FMRADIO) {
+    if (in->source == AUDIO_SOURCE_IN_FM_TUNER) {
+    //if (in->source == AUDIO_SOURCE_FMRADIO) {
       select_interface(in->dev, ID_IPATH_TX_FM, false);
     } else {
       select_interface(in->dev, ID_IPATH_TX_HIFI, false);
@@ -1469,83 +1465,8 @@ static void force_all_standby(struct mrvl_audio_device *madev) {
 }
 
 // FM handling function, for internal use
-/*
-static void set_fm_parameters(struct mrvl_audio_device *madev,
-                              struct str_parms *parms) {
-  int fm_status = 0;
-  int fm_device = 0;
-  int fm_volume = 0;
-  pthread_mutex_lock(&madev->lock);
-
-  // set fm volume
-  if (str_parms_get_int(parms, AUDIO_PARAMETER_FM_VOLUME, &fm_volume) >= 0) {
-    ALOGI("%s: set FM volume %d", __FUNCTION__, fm_volume);
-    madev->fm_volume = fm_volume;
-    set_hw_volume(V_MODE_FM, convert2_hwdev(madev, madev->out_device),
-                  fm_volume);
-    str_parms_del(parms, AUDIO_PARAMETER_FM_VOLUME);
-  }
-
-  // set fm status
-  if (str_parms_get_int(parms, AUDIO_PARAMETER_FM_STATUS, &fm_status) >= 0) {
-    switch (fm_status) {
-      case FM_DISABLE:  // disable
-        if (str_parms_get_int(parms, AUDIO_PARAMETER_FM_DEVICE, &fm_device) >=
-            0) {
-          // disable FM playback input path
-          ALOGI("%s: disable FM", __FUNCTION__);
-          if (madev->in_fm) {
-            select_interface(madev, ID_IPATH_RX_FM, false);
-            madev->in_fm = false;
-            madev->fm_device = 0;
-            madev->fm_volume = 0;
-
-            // close FE when disable FM
-            if (madev->fm_handle) {
-              pcm_stop(madev->fm_handle);
-              pcm_close(madev->fm_handle);
-              madev->fm_handle = NULL;
-            }
-          }
-        }
-        break;
-      case FM_ENABLE:  // enable
-        if (str_parms_get_int(parms, AUDIO_PARAMETER_FM_DEVICE, &fm_device) >=
-            0) {
-          ALOGI("%s: enable FM", __FUNCTION__);
-          if (!madev->in_fm) {
-            // open FE when enable FM
-            if (!madev->fm_handle) {
-              madev->fm_handle = open_tiny_alsa_device(ALSA_DEVICE_FM, PCM_OUT,
-                                                       &pcm_config_fm);
-              if (!madev->fm_handle) {
-                ALOGE("%s open tiny alsa device error", __FUNCTION__);
-                break;
-              }
-              pcm_start(madev->fm_handle);
-            }
-
-            // enable FM playback input path
-            select_interface(madev, ID_IPATH_RX_FM, true);
-            madev->in_fm = true;
-          }
-          // enable or switch FM output path
-          madev->out_device = fm_device;
-          madev->fm_device = fm_device;
-          select_output_device(madev);
-        }
-        break;
-    }
-    str_parms_del(parms, AUDIO_PARAMETER_FM_DEVICE);
-    str_parms_del(parms, AUDIO_PARAMETER_FM_STATUS);
-  }
-  pthread_mutex_unlock(&madev->lock);
-}
-*/
-
 static void set_fm_parameters(struct mrvl_audio_device *madev, struct str_parms *param)
 {
-  ENTER_FUNC();
     int32_t param_int;
     char buffer[92];
     ALOGI("%s: entering fm radio setting", __FUNCTION__);
@@ -2980,7 +2901,6 @@ static int mrvl_hw_dev_set_parameters(struct audio_hw_device *dev,
     return -1;
   }
 
-  set_fm_parameters(madev, param);
   set_hfp_parameters(madev, param);
   // A device has been connected/disconnected
   set_device_parameters(madev, param);
@@ -3534,6 +3454,14 @@ static int mrvl_hw_dev_open_input_stream(struct audio_hw_device *dev,
           config->sample_rate, config->channel_mask, devices);
   }
 
+  if( devices == AUDIO_DEVICE_IN_FM_TUNER )
+  {
+    struct str_parms *param = NULL;
+    param = str_parms_create_str("fm_mode=on");
+    set_fm_parameters(madev, param);
+    str_parms_destroy(param);
+  }
+
   *stream_in = NULL;
 
   in = (struct mrvl_stream_in *)calloc(1, sizeof(struct mrvl_stream_in));
@@ -3996,6 +3924,7 @@ static int mrvl_hw_dev_open(const hw_module_t *module, const char *name,
   madev->factory_test_type = 0;
 
   // initialize mrvl path manager
+  memset(&mrvl_path_manager, 0, sizeof(mrvl_path_manager));
   list_init(&mrvl_path_manager.in_virtual_path);
   list_init(&mrvl_path_manager.out_virtual_path);
 

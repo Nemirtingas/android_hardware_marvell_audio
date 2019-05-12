@@ -7,7 +7,7 @@
 
 #include "audio_hw_mrvl.h"
 
-#if 1
+#ifdef DISABLE_LOGS
     #ifdef ALOGE
     #undef ALOGE
     #endif

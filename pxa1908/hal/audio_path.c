@@ -24,7 +24,7 @@
 #include "acm_param.h"
 #include "audio_path.h"
 
-#if 1
+#ifdef DISABLE_LOGS
     #ifdef ALOGE
     #undef ALOGE
     #endif
@@ -381,6 +381,7 @@ char *get_vrtl_path(virtual_mode_t v_mode, unsigned int hw_dev,
       return gPathVirtual[i].path_name;
     }
   }
+  ALOGD("%s find path failed for %x", __func__, hw_dev);
 
   return NULL;
 }

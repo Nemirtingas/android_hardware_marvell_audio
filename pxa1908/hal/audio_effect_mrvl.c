@@ -42,7 +42,7 @@
 #define RAMP_DOWN_GAIN_INITIAL_VALUE 1
 #define RAMP_UP_GAIN_INITIAL_VALUE 0.0001
 
-#if 1
+#ifdef DISABLE_LOGS
     #ifdef ALOGE
     #undef ALOGE
     #endif

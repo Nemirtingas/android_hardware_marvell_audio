@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <cutils/log.h>
 
-#if 1
+#ifdef DISABLE_LOGS
     #ifdef ALOGE
     #undef ALOGE
     #endif
